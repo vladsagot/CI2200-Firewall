@@ -96,6 +96,6 @@ FROM products
 WHERE name LIKE '%banana%'
 ORDER BY name;
 
-SELECT username
+SELECT id, username
 FROM users
 WHERE username = 'vladsagot';
