@@ -54,7 +54,55 @@ void unregistered_template(const string &data) {
 
     if (data == "login") {
         // Login Form
+        cout << "<h2>Login</h2>" << endl;
+        cout << "<form action=tarea1_seguridad?login-conn method='post'>" << endl;
+        cout << "Username <input type='text' name='username' size=10><br>" << endl;
+        cout << "<input type='submit' value='Login'>" << endl;
+        cout << "</form><br>" << endl;
         cout << "<a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a>" << endl;
+    } else if (data == "login-conn") {
+        // Login Database Connection
+        string line;
+        getline(cin, line);
+        vector<string> lines_buffer = get_tokens(line);
+
+        /*
+         * INPUTS:
+         * lines_buffer[0] : username
+         */
+        string username = lines_buffer[0];
+
+        sql::mysql::MySQL_Driver *driver;
+        sql::Connection *con;
+        sql::Statement *stmt;
+        sql::ResultSet *res;
+
+        try {
+            driver = sql::mysql::get_mysql_driver_instance();
+            con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
+
+            string query = "SELECT username FROM users WHERE username = '" + username + "';";
+
+            stmt = con->createStatement();
+            stmt->execute("USE seguridad1");
+            res = stmt->executeQuery(query);
+
+            if (res->next()) {
+                registered = true;
+                cout << "Successful login" << endl;
+            } else {
+                cout << "Incorrect user or password." << endl;
+            }
+
+            cout << "<br><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a>" << endl;
+
+            delete res;
+            delete stmt;
+            delete con;
+        } catch (sql::SQLException &e) {
+            cout << "SQLException: " << e.what() << "<br>" << endl;
+        }
+
     } else if (data == "sign-up") {
         // Sign Up Form
         cout << "<h2>Sign up</h2>" << endl;
@@ -63,7 +111,7 @@ void unregistered_template(const string &data) {
         cout << "Username <input type='text' name='username' size=10><br>" << endl;
         cout << "Email <input type='text' name='email' size=20><br>" << endl;
         cout << "<input type='submit' value='Submit'>" << endl;
-        cout << "</form>" << endl;
+        cout << "</form><br>" << endl;
         cout << "<a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a>" << endl;
     } else if (data == "sign-up-conn") {
         // Sign Up Database Connection
@@ -93,7 +141,7 @@ void unregistered_template(const string &data) {
             stmt = con->createStatement();
             stmt->execute("USE seguridad1");
             stmt->execute("INSERT INTO users(name, username, email, rol) VALUES ('" +
-                          name + "','" + username + "','" + email + "','" + rol + "')");
+                                  name + "','" + username + "','" + email + "','" + rol + "')");
 
             delete stmt;
             delete con;
@@ -132,13 +180,26 @@ void unregistered_template(const string &data) {
             driver = sql::mysql::get_mysql_driver_instance();
             con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
-            stmt = con->createStatement();
-            res = stmt->executeQuery("SELECT id, label FROM test ORDER BY id ASC");
+            string query = "SELECT name, quantity, price FROM products WHERE name LIKE '%" + product_name +
+                           "%' ORDER BY name;";
 
+            stmt = con->createStatement();
+            stmt->execute("USE seguridad1");
+            res = stmt->executeQuery(query);
+
+            cout << "<table><tr> <th>Name</th> <th>Quantity</th> <th>Price</th> </tr>" << endl;
+            while (res->next()) {
+                cout << "<tr>" << endl;
+                cout << "<th>" << res->getString("Name") << "</th>" << endl;
+                cout << "<th>" << res->getString("Quantity") << "</th>" << endl;
+                cout << "<th>" << "$" << res->getString("Price") << "</th>" << endl;
+                cout << "</tr>" << endl;
+            }
+            cout << "</table><br>" << endl;
+
+            delete res;
             delete stmt;
             delete con;
-
-            cout << "Successful registration<br>" << endl;
         } catch (sql::SQLException &e) {
             cout << "SQLException: " << e.what() << "<br>" << endl;
         }
