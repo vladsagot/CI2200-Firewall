@@ -1,12 +1,12 @@
-CREATE DATABASE seguridad1;
+CREATE DATABASE IF NOT EXISTS seguridad1;
 
 USE seguridad1;
 
-DROP TABLE order_products;
-DROP TABLE products;
-DROP TABLE orders;
-DROP TABLE suggestions_mailbox;
-DROP TABLE users;
+DROP TABLE IF EXISTS order_products;
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS suggestions_mailbox;
+DROP TABLE IF EXISTS users;
 
 CREATE TABLE IF NOT EXISTS users
 (
@@ -18,6 +18,22 @@ CREATE TABLE IF NOT EXISTS users
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT usernames_unique UNIQUE (username),
     CONSTRAINT emails_unique UNIQUE (email)
+);
+
+CREATE TABLE IF NOT EXISTS products
+(
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    name        VARCHAR(60)   NOT NULL,
+    description VARCHAR(1000),
+    quantity    INT           NOT NULL,
+    price       DECIMAL(6, 2) NOT NULL,
+    id_user     INT           NOT NULL,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_user)
+        REFERENCES users (id)
+        ON UPDATE RESTRICT
+        ON DELETE CASCADE,
+    CONSTRAINT names_unique UNIQUE (name)
 );
 
 CREATE TABLE IF NOT EXISTS suggestions_mailbox
@@ -41,17 +57,6 @@ CREATE TABLE IF NOT EXISTS orders
         ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS products
-(
-    id          INT AUTO_INCREMENT PRIMARY KEY,
-    name        VARCHAR(30)   NOT NULL,
-    description VARCHAR(1000),
-    quantity    INT           NOT NULL,
-    price       DECIMAL(6, 2) NOT NULL,
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT names_unique UNIQUE (name)
-);
-
 CREATE TABLE IF NOT EXISTS order_products
 (
     id_order   INT NOT NULL,
@@ -67,3 +72,21 @@ CREATE TABLE IF NOT EXISTS order_products
         ON UPDATE RESTRICT
         ON DELETE CASCADE
 );
+
+INSERT INTO users(name, username, email, rol)
+VALUES ('Vladimir', 'vladsagot', 'vladsagot@gmail.com', 'admin');
+
+INSERT INTO products(name, description, quantity, price, id_user)
+VALUES ('Orange', 'A deliciuos fruit.', 10, 1, 1);
+
+INSERT INTO products(name, description, quantity, price, id_user)
+VALUES ('Banana', 'A deliciuos fruit.', 10, 1, 1);
+
+INSERT INTO products(name, description, quantity, price, id_user)
+VALUES ('Strawberry', 'A deliciuos fruit.', 10, 2, 1);
+
+INSERT INTO products(name, description, quantity, price, id_user)
+VALUES ('Pineapple', 'A deliciuos fruit.', 10, 1, 1);
+
+INSERT INTO products(name, description, quantity, price, id_user)
+VALUES ('Apple', 'A deliciuos fruit.', 10, 1.5, 1);

@@ -119,12 +119,30 @@ void unregistered_template(const string &data) {
 
         /*
          * INPUTS:
-         * lines_buffer[0] : name
+         * lines_buffer[0] : product_name
          * */
-        string name = lines_buffer[0];
-        string username = lines_buffer[1];
-        string email = lines_buffer[2];
-        string rol = "buyer";
+        string product_name = lines_buffer[0];
+
+        sql::mysql::MySQL_Driver *driver;
+        sql::Connection *con;
+        sql::Statement *stmt;
+        sql::ResultSet *res;
+
+        try {
+            driver = sql::mysql::get_mysql_driver_instance();
+            con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
+
+            stmt = con->createStatement();
+            res = stmt->executeQuery("SELECT id, label FROM test ORDER BY id ASC");
+
+            delete stmt;
+            delete con;
+
+            cout << "Successful registration<br>" << endl;
+        } catch (sql::SQLException &e) {
+            cout << "SQLException: " << e.what() << "<br>" << endl;
+        }
+        cout << "<a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a>" << endl;
     } else {
         // Main Site
         cout << "<h2><a href='../cgi-bin/tarea1_seguridad?login'>Login</a></h2>" << endl;
