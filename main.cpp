@@ -18,20 +18,23 @@ string get_token(const string &line) {
     return line.substr(init, npos);
 }
 
-vector<string> get_tokens(string line) {
+string format_email(const string &line) {
+    return regex_replace(line, regex("%40"), "@");
+}
+
+vector<string> get_tokens(const string &line) {
     size_t tokens_n = count(line.begin(), line.end(), '&') + 1;
     vector<string> lines_buffer;
     string buffer = line;
+    string token;
     for (size_t i = 0; i < tokens_n; ++i) {
-        lines_buffer.push_back(get_token(buffer));
+        token = get_token(buffer);
+        if (std::regex_match(token, std::regex("(.*)(%40)(.*)"))) // Format a token with '@'
+            token = format_email(token);
+        lines_buffer.push_back(token);
         buffer = buffer.substr(buffer.find('&') + 1);
     }
     return lines_buffer;
-}
-
-string format_email(string line) {
-    line = regex_replace(line, regex("%40"), "@");
-    return line;
 }
 
 void unregistered_template(const string &data) {
@@ -50,19 +53,23 @@ void unregistered_template(const string &data) {
     cout << "<h1><a href='../cgi-bin/tarea1_seguridad'>Store</a></h1>" << endl;
 
     if (data == "login") {
-
-    } else if (data == "sign-up") { // Sign Up Form
+        // Login Form
+        cout << "<a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a>" << endl;
+    } else if (data == "sign-up") {
+        // Sign Up Form
+        cout << "<h2>Sign up</h2>" << endl;
         cout << "<form action=tarea1_seguridad?sign-up-conn method='post'>" << endl;
         cout << "Name <input type='text' name='name' size=10><br>" << endl;
         cout << "Username <input type='text' name='username' size=10><br>" << endl;
         cout << "Email <input type='text' name='email' size=20><br>" << endl;
         cout << "<input type='submit' value='Submit'>" << endl;
         cout << "</form>" << endl;
-    } else if (data == "sign-up-conn") { // Sign Up Database Connection
+        cout << "<a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a>" << endl;
+    } else if (data == "sign-up-conn") {
+        // Sign Up Database Connection
         string line;
         getline(cin, line);
         vector<string> lines_buffer = get_tokens(line);
-        lines_buffer[2] = format_email(lines_buffer[2]);
 
         /*
          * INPUTS:
@@ -84,24 +91,42 @@ void unregistered_template(const string &data) {
             con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
             stmt = con->createStatement();
-            stmt->execute("USE MYSQL");
+            stmt->execute("USE seguridad1");
             stmt->execute("INSERT INTO users(name, username, email, rol) VALUES ('" +
                           name + "','" + username + "','" + email + "','" + rol + "')");
 
             delete stmt;
             delete con;
+
+            cout << "Successful registration<br>" << endl;
         } catch (sql::SQLException &e) {
-            cout << e.what() << endl;
+            cout << "SQLException: " << e.what() << "<br>" << endl;
         }
-
-
-        for (const auto &i : lines_buffer) {
-            cout << i << "<br>" << endl;
-        }
-
+        cout << "<a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a>" << endl;
     } else if (data == "search") {
+        // Search Form
+        cout << "<h2>Search</h2>" << endl;
+        cout << "<form action=tarea1_seguridad?search-conn method='post'>" << endl;
+        cout << "<input type='text' name='name' size=10><br>" << endl;
+        cout << "<input type='submit' value='Search'>" << endl;
+        cout << "</form>" << endl;
+        cout << "<a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a>" << endl;
+    } else if (data == "search-conn") {
+        // Search Database Connection
+        string line;
+        getline(cin, line);
+        vector<string> lines_buffer = get_tokens(line);
 
+        /*
+         * INPUTS:
+         * lines_buffer[0] : name
+         * */
+        string name = lines_buffer[0];
+        string username = lines_buffer[1];
+        string email = lines_buffer[2];
+        string rol = "buyer";
     } else {
+        // Main Site
         cout << "<h2><a href='../cgi-bin/tarea1_seguridad?login'>Login</a></h2>" << endl;
         cout << "<h2><a href='../cgi-bin/tarea1_seguridad?sign-up'>Sign up</a></h2>" << endl;
         cout << "<h2><a href='../cgi-bin/tarea1_seguridad?search'>Search</a></h2>" << endl;
@@ -116,7 +141,7 @@ void unregistered_template(const string &data) {
 int main() {
     string data = getenv("QUERY_STRING");
 
-    sql_db_url = "jdbc:mariadb://localhost:3306";
+    sql_db_url = "localhost";
     sql_db_username = "vlad";
     sql_db_password = "";
 
