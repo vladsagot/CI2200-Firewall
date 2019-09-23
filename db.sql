@@ -33,6 +33,11 @@ CREATE TABLE IF NOT EXISTS carts
         ON DELETE CASCADE
 );
 
+SELECT id
+FROM carts
+WHERE status = 'active'
+  AND id_user = '1';
+
 CREATE TABLE IF NOT EXISTS products
 (
     id          INT AUTO_INCREMENT PRIMARY KEY,
@@ -94,3 +99,10 @@ VALUES ('Pineapple', 'A deliciuos fruit.', 10, 1, 1);
 INSERT INTO products(name, description, quantity, price, id_user)
 VALUES ('Apple', 'A deliciuos fruit.', 10, 1.5, 1);
 
+SELECT products.name, products.price, carts_products.quantity, products.price * carts_products.quantity AS total
+FROM carts_products,
+     products,
+     carts
+WHERE carts.id = 1
+  AND carts_products.id_cart = carts.id
+  AND carts_products.id_product = products.id;
