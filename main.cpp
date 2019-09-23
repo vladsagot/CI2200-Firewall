@@ -222,6 +222,35 @@ void create_new_cart(const string &username) {
     } catch (sql::SQLException &e) {}
 }
 
+string get_user_active_cart_id() {
+    sql::mysql::MySQL_Driver *driver;
+    sql::Connection *con;
+    sql::Statement *stmt;
+    sql::ResultSet *res;
+
+    string result;
+
+    try {
+        driver = sql::mysql::get_mysql_driver_instance();
+        con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
+
+        string query = "SELECT id FROM carts WHERE status = 'active' AND id_user = '" + user_id + "'";
+
+        stmt = con->createStatement();
+        stmt->execute("USE seguridad1");
+        res = stmt->executeQuery(query);
+
+        if (res->next())
+            result = res->getString("id");
+
+        delete res;
+        delete stmt;
+        delete con;
+    } catch (sql::SQLException &e) {}
+
+    return result;
+}
+
 void no_login_template(const string &data) {
     cout << "<!doctype html>" << endl;
     cout << "<html lang='en'>" << endl;
@@ -452,6 +481,7 @@ void login_template(const string &data) {
         // Buy Individual Product Site
         // ------------------------------------------------------------------
         string product_id = get_product_id_from_URL(data);
+        string active_cart_id = get_user_active_cart_id();
 
         string line;
         getline(cin, line);
@@ -463,7 +493,29 @@ void login_template(const string &data) {
          * */
         string quantity = lines_buffer[0];
 
+        sql::mysql::MySQL_Driver *driver;
+        sql::Connection *con;
+        sql::Statement *stmt;
 
+        try {
+            driver = sql::mysql::get_mysql_driver_instance();
+            con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
+
+            // INSERT INTO carts_products(id_cart, id_product, quantity) VALUES ();
+            stmt = con->createStatement();
+            stmt->execute("USE seguridad1");
+            stmt->execute("INSERT INTO carts_products(id_cart, id_product, quantity) VALUES (" + active_cart_id + "," +
+                          product_id + "," + quantity + ")");
+
+            delete stmt;
+            delete con;
+
+            cout << "<p>Product added to cart</p>" << endl;
+        } catch (sql::SQLException &e) {
+            cout << "SQLException: " << e.what() << "<br>" << endl;
+        }
+
+        cout << "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>" << endl;
     } else {
         // ------------------------------------------------------------------
         // Main Site
