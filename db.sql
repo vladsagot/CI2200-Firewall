@@ -20,6 +20,18 @@ CREATE TABLE IF NOT EXISTS users
     CONSTRAINT emails_unique UNIQUE (email)
 );
 
+CREATE TABLE IF NOT EXISTS cards_info
+(
+    card_number   VARCHAR(30) NOT NULL PRIMARY KEY,
+    expire        VARCHAR(10) NOT NULL,
+    security_code VARCHAR(5)  NOT NULL,
+    id_user       INT,
+    FOREIGN KEY (id_user)
+        REFERENCES users (id)
+        ON UPDATE RESTRICT
+        ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS carts
 (
     id         INT AUTO_INCREMENT,
@@ -99,7 +111,7 @@ VALUES ('Pineapple', 'A deliciuos fruit.', 10, 1, 1);
 INSERT INTO products(name, description, quantity, price, id_user)
 VALUES ('Apple', 'A deliciuos fruit.', 10, 1.5, 1);
 
-SELECT products.name, products.price, carts_products.quantity, products.price * carts_products.quantity AS total
+SELECT products.id, products.price, carts_products.quantity, products.price * carts_products.quantity AS total
 FROM carts_products,
      products,
      carts
