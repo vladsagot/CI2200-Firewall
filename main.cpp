@@ -251,6 +251,52 @@ string get_user_active_cart_id() {
     return result;
 }
 
+void cart_template() {
+    sql::mysql::MySQL_Driver *driver;
+    sql::Connection *con;
+    sql::Statement *stmt;
+    sql::ResultSet *res;
+
+    string active_cart = get_user_active_cart_id();
+    double total = 0;
+
+    try {
+        driver = sql::mysql::get_mysql_driver_instance();
+        con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
+
+        string query =
+                "SELECT products.name, products.price, carts_products.quantity, products.price * carts_products.quantity AS total FROM carts_products, products, carts WHERE carts.id = " +
+                active_cart +
+                " AND carts_products.id_cart = carts.id AND carts_products.id_product = products.id;";
+
+        stmt = con->createStatement();
+        stmt->execute("USE seguridad1");
+        res = stmt->executeQuery(query);
+
+        cout << "<table><tr> <th>Name</th> <th>Price</th> <th>Quantity</th> <th>Subtotal</th> </tr>" << endl;
+        while (res->next()) {
+            cout << "<tr>" << endl;
+            cout << "<th>" << res->getString("name") << "</th>" << endl;
+            cout << "<th> $" << res->getString("price") << "</th>" << endl;
+            cout << "<th>" << res->getString("quantity") << "</th>" << endl;
+            cout << "<th> $" << res->getString("total") << "</th>" << endl;
+            cout << "</tr>" << endl;
+
+            total += stod(res->getString("total"));
+        }
+        cout << "</table>" << endl;
+
+        cout << "<h2>Total: $" << total << "</h2>" << endl;
+
+        delete res;
+        delete stmt;
+        delete con;
+    } catch (sql::SQLException &e) {
+        cout << "SQLException: " << e.what() << "<br>" << endl;
+    }
+    cout << "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>" << endl;
+}
+
 void no_login_template(const string &data) {
     cout << "<!doctype html>" << endl;
     cout << "<html lang='en'>" << endl;
@@ -431,10 +477,7 @@ void login_template(const string &data) {
     } else if (data == "search-conn") {
         general_search_conn_template();
     } else if (data == "cart") {
-        // ------------------------------------------------------------------
-        // Cart Site
-        // ------------------------------------------------------------------
-        cout << "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>" << endl;
+        cart_template();
     } else if (product_template) {
         // ------------------------------------------------------------------
         // Individual Product Site
