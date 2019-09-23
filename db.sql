@@ -32,8 +32,7 @@ CREATE TABLE IF NOT EXISTS products
     FOREIGN KEY (id_user)
         REFERENCES users (id)
         ON UPDATE RESTRICT
-        ON DELETE CASCADE,
-    CONSTRAINT names_unique UNIQUE (name)
+        ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS mailbox
@@ -91,12 +90,3 @@ VALUES ('Pineapple', 'A deliciuos fruit.', 10, 1, 1);
 
 INSERT INTO products(name, description, quantity, price, id_user)
 VALUES ('Apple', 'A deliciuos fruit.', 10, 1.5, 1);
-
-SELECT name, quantity, price
-FROM products
-WHERE name LIKE '%banana%'
-ORDER BY name;
-
-SELECT id, username
-FROM users
-WHERE username = 'vladsagot';

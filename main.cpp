@@ -12,6 +12,7 @@ string sql_db_url, sql_db_username, sql_db_password;
 
 // Login Info
 bool user_login;
+bool product_template;
 string user_id;
 string user_name;
 
@@ -61,16 +62,21 @@ vector<string> get_cookie_tokens(const string &line) {
     return lines_buffer;
 }
 
+bool check_product_URL(const string &line) {
+    return std::regex_match(line, std::regex("(product=)([0-9]+)"));
+}
+
 void general_search_template() {
     // ------------------------------------------------------------------
     // Search Form
     // ------------------------------------------------------------------
     cout << "<h2>Search</h2>" << endl;
+    cout << "<p>Leave empty to see all products.</p>" << endl;
     cout << "<form action=tarea1_seguridad?search-conn method='post'>" << endl;
     cout << "<input type='text' name='name' size=10><br>" << endl;
     cout << "<input type='submit' value='Search'>" << endl;
     cout << "</form>" << endl;
-    cout << "<a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a>" << endl;
+    cout << "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>" << endl;
 }
 
 void general_search_conn_template() {
@@ -96,7 +102,7 @@ void general_search_conn_template() {
         driver = sql::mysql::get_mysql_driver_instance();
         con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
-        string query = "SELECT name, quantity, price FROM products WHERE name LIKE '%" + product_name +
+        string query = "SELECT id, name, quantity, price FROM products WHERE name LIKE '%" + product_name +
                        "%' ORDER BY name;";
 
         stmt = con->createStatement();
@@ -106,7 +112,9 @@ void general_search_conn_template() {
         cout << "<table><tr> <th>Name</th> <th>Quantity</th> <th>Price</th> </tr>" << endl;
         while (res->next()) {
             cout << "<tr>" << endl;
-            cout << "<th>" << res->getString("Name") << "</th>" << endl;
+            cout << "<th><a href='../cgi-bin/tarea1_seguridad?product=" + res->getString("id") + "'>"
+                 << res->getString("name")
+                 << "</a></th>" << endl;
             cout << "<th>" << res->getString("Quantity") << "</th>" << endl;
             cout << "<th>" << "$" << res->getString("Price") << "</th>" << endl;
             cout << "</tr>" << endl;
@@ -119,7 +127,7 @@ void general_search_conn_template() {
     } catch (sql::SQLException &e) {
         cout << "SQLException: " << e.what() << "<br>" << endl;
     }
-    cout << "<a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a>" << endl;
+    cout << "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>" << endl;
 }
 
 void contact_template() {
@@ -133,7 +141,7 @@ void contact_template() {
     cout << "Message <input type='text' name='message' size=40><br>" << endl;
     cout << "<input type='submit' value='Send'>" << endl;
     cout << "</form>" << endl;
-    cout << "<a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a>" << endl;
+    cout << "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>" << endl;
 }
 
 void contact_conn_template() {
@@ -176,7 +184,7 @@ void contact_conn_template() {
     } catch (sql::SQLException &e) {
         cout << "SQLException: " << e.what() << "<br>" << endl;
     }
-    cout << "<a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a>" << endl;
+    cout << "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>" << endl;
 }
 
 void no_login_template(const string &data) {
@@ -202,7 +210,7 @@ void no_login_template(const string &data) {
         cout << "Username <input type='text' name='username' size=10><br>" << endl;
         cout << "<input type='submit' value='Login'>" << endl;
         cout << "</form><br>" << endl;
-        cout << "<a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a>" << endl;
+        cout << "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>" << endl;
     } else if (data == "sign-up") {
         // ------------------------------------------------------------------
         // Sign Up Form
@@ -214,7 +222,7 @@ void no_login_template(const string &data) {
         cout << "Email <input type='text' name='email' size=20><br>" << endl;
         cout << "<input type='submit' value='Submit'>" << endl;
         cout << "</form><br>" << endl;
-        cout << "<a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a>" << endl;
+        cout << "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>" << endl;
     } else if (data == "sign-up-conn") {
         // ------------------------------------------------------------------
         // Sign Up Database Connection
@@ -256,7 +264,7 @@ void no_login_template(const string &data) {
         } catch (sql::SQLException &e) {
             cout << "SQLException: " << e.what() << "<br>" << endl;
         }
-        cout << "<a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a>" << endl;
+        cout << "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>" << endl;
     } else if (data == "search") {
         general_search_template();
     } else if (data == "search-conn") {
@@ -265,6 +273,8 @@ void no_login_template(const string &data) {
         contact_template();
     } else if (data == "contact-conn") {
         contact_conn_template();
+    } else if (product_template) {
+        cout << "<p>Create a user or login to buy.</p>" << endl;
     } else {
         // ------------------------------------------------------------------
         // Main Site
@@ -292,7 +302,7 @@ void login_template(const string &data) {
     cout << "<body>" << endl;
     cout << "<h1><a href='../cgi-bin/tarea1_seguridad'>Store</a></h1>" << endl;
     cout << "<h2>User: " + user_name + "</h2>" << endl;
-    cout << "<a href='../cgi-bin/tarea1_seguridad?login-check-out'>Log Out</a><br>" << endl;
+    cout << "<p><a href='../cgi-bin/tarea1_seguridad?login-check-out'>Log Out</a></p>" << endl;
 
     if (data == "sell") {
         // ------------------------------------------------------------------
@@ -306,7 +316,7 @@ void login_template(const string &data) {
         cout << "Price $<input type='number' name='price' size=10><br>" << endl;
         cout << "<input type='submit' value='Send'>" << endl;
         cout << "</form>" << endl;
-        cout << "<a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a>" << endl;
+        cout << "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>" << endl;
     } else if (data == "sell-conn") {
         // ------------------------------------------------------------------
         // Sell Database Connection
@@ -349,7 +359,7 @@ void login_template(const string &data) {
         } catch (sql::SQLException &e) {
             cout << "SQLException: " << e.what() << "<br>" << endl;
         }
-        cout << "<a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a>" << endl;
+        cout << "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>" << endl;
     } else if (data == "search") {
         general_search_template();
     } else if (data == "search-conn") {
@@ -358,7 +368,12 @@ void login_template(const string &data) {
         // ------------------------------------------------------------------
         // Cart Site
         // ------------------------------------------------------------------
-        cout << "<a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a>" << endl;
+        cout << "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>" << endl;
+    } else if (product_template) {
+        // ------------------------------------------------------------------
+        // Individual Product Site
+        // ------------------------------------------------------------------
+
     } else {
         // ------------------------------------------------------------------
         // Main Site
@@ -380,6 +395,7 @@ int main() {
     string cookie = getenv("HTTP_COOKIE") ? getenv("HTTP_COOKIE") : "";
 
     user_login = false;
+    product_template = check_product_URL(data);
 
     // Database Connection Info
     sql_db_url = "localhost";
@@ -458,8 +474,9 @@ int main() {
 
     cout << "DATA: " << data << "<br>" << endl;
     cout << "COOKIE: " << cookie << "<br>" << endl;
+    cout << "PRODUCT TEMPLATE: " << product_template << "<br>" << endl;
     if (user_login) {
-        cout << "UserID: " << user_id << "<br>" << endl;
+        cout << "USER ID: " << user_id << "<br>" << endl;
         login_template(data);
     } else {
         no_login_template(data);
