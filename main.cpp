@@ -252,6 +252,8 @@ string get_user_active_cart_id() {
 }
 
 void cart_template() {
+    cout << "<h2>Cart</h2>" << endl;
+
     sql::mysql::MySQL_Driver *driver;
     sql::Connection *con;
     sql::Statement *stmt;
@@ -284,13 +286,82 @@ void cart_template() {
 
             total += stod(res->getString("total"));
         }
+        cout << "<tr style='height: 50px;'><th>Total</th><th></th><th></th><th>$" << total << "</th></tr>" << endl;
         cout << "</table>" << endl;
-
-        cout << "<h2>Total: $" << total << "</h2>" << endl;
-
         delete res;
         delete stmt;
         delete con;
+    } catch (sql::SQLException &e) {
+        cout << "SQLException: " << e.what() << "<br>" << endl;
+    }
+
+    cout << "<form action=tarea1_seguridad?buy method='post'>" << endl;
+    cout << "Card number <input type='text' name='card' size=20><br>" << endl;
+    cout << "Expires <input type='text' name='expires' size=10><br>" << endl;
+    cout << "Security code <input type='text' name='code' size=10><br>" << endl;
+    cout << "<input type='submit' value='Buy'>" << endl;
+    cout << "</form>" << endl;
+
+    cout << "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>" << endl;
+}
+
+void buy_template() {
+    cout << "<h2>Buy</h2>" << endl;
+
+    string line;
+    getline(cin, line);
+    vector<string> lines_buffer = get_tokens(line);
+
+    /*
+     * INPUTS:
+     * lines_buffer[0]: card
+     * lines_buffer[1]: expires
+     * lines_buffer[2]: code
+     * */
+    string card = lines_buffer[0];
+    string expires = lines_buffer[1];
+    string code = lines_buffer[2];
+
+    sql::mysql::MySQL_Driver *driver;
+    sql::Connection *con;
+    sql::Statement *stmt;
+    sql::ResultSet *res;
+
+    string active_cart = get_user_active_cart_id();
+
+    try {
+        driver = sql::mysql::get_mysql_driver_instance();
+        con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
+
+        // -------------------------
+        // CARD REGISTRATION
+        // -------------------------
+        stmt = con->createStatement();
+        stmt->execute("USE seguridad1");
+        stmt->execute("INSERT INTO cards_info(card_number, expire, security_code, id_user) VALUES ('" + card + "','" +
+                      expires + "','" + code + "'," + user_id + ");");
+
+        // -------------------------
+        // TRANSACTION
+        // -------------------------
+        string query =
+                "SELECT products.id, products.price, carts_products.quantity, products.price * carts_products.quantity AS total FROM carts_products, products, carts WHERE carts.id = " +
+                active_cart +
+                " AND carts_products.id_cart = carts.id AND carts_products.id_product = products.id;";
+
+        stmt = con->createStatement();
+        stmt->execute("USE seguridad1");
+        res = stmt->executeQuery(query);
+
+        while (res->next()) {
+            stmt->execute("UPDATE products SET quantity = quantity - " + res->getString("quantity") + " WHERE id = " +
+                          res->getString("id") + ";");
+        }
+
+        delete stmt;
+        delete con;
+
+        cout << "<p>Thanks! Hope to enjoy our products!</p>" << endl;
     } catch (sql::SQLException &e) {
         cout << "SQLException: " << e.what() << "<br>" << endl;
     }
@@ -478,6 +549,8 @@ void login_template(const string &data) {
         general_search_conn_template();
     } else if (data == "cart") {
         cart_template();
+    } else if (data == "buy") {
+        buy_template();
     } else if (product_template) {
         // ------------------------------------------------------------------
         // Individual Product Site
@@ -548,7 +621,7 @@ void login_template(const string &data) {
             stmt = con->createStatement();
             stmt->execute("USE seguridad1");
             stmt->execute("INSERT INTO carts_products(id_cart, id_product, quantity) VALUES (" + active_cart_id + "," +
-                          product_id + "," + quantity + ")");
+                                  product_id + "," + quantity + ")");
 
             delete stmt;
             delete con;
