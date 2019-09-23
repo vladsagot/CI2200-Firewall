@@ -13,8 +13,13 @@ string sql_db_url, sql_db_username, sql_db_password;
 // Login Info
 bool user_login;
 bool product_template;
+bool product_template_conn;
 string user_id;
 string user_name;
+
+string get_product_id_from_URL(const string &line) {
+    return line.substr(line.find('=') + 1);
+}
 
 string format_email(const string &line) {
     return regex_replace(line, regex("%40"), "@");
@@ -64,6 +69,10 @@ vector<string> get_cookie_tokens(const string &line) {
 
 bool check_product_URL(const string &line) {
     return std::regex_match(line, std::regex("(product=)([0-9]+)"));
+}
+
+bool check_product_conn_URL(const string &line) {
+    return std::regex_match(line, std::regex("(product-conn=)([0-9]+)"));
 }
 
 void general_search_template() {
@@ -187,6 +196,32 @@ void contact_conn_template() {
     cout << "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>" << endl;
 }
 
+void create_new_cart(const string &username) {
+    sql::mysql::MySQL_Driver *driver;
+    sql::Connection *con;
+    sql::Statement *stmt;
+    sql::ResultSet *res;
+
+    try {
+        driver = sql::mysql::get_mysql_driver_instance();
+        con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
+
+        string query = "SELECT id, username FROM users WHERE username = '" + username + "';";
+
+        stmt = con->createStatement();
+        stmt->execute("USE seguridad1");
+        res = stmt->executeQuery(query);
+
+        if (res->next()) {
+            stmt->execute("INSERT INTO carts(id_user,status) VALUES (" + res->getString("id") + ",'active')");
+        }
+
+        delete res;
+        delete stmt;
+        delete con;
+    } catch (sql::SQLException &e) {}
+}
+
 void no_login_template(const string &data) {
     cout << "<!doctype html>" << endl;
     cout << "<html lang='en'>" << endl;
@@ -247,6 +282,7 @@ void no_login_template(const string &data) {
         sql::mysql::MySQL_Driver *driver;
         sql::Connection *con;
         sql::Statement *stmt;
+        sql::ResultSet *res;
 
         try {
             driver = sql::mysql::get_mysql_driver_instance();
@@ -260,10 +296,12 @@ void no_login_template(const string &data) {
             delete stmt;
             delete con;
 
-            cout << "Successful registration<br>" << endl;
+            cout << "<p>Successful registration</p>" << endl;
         } catch (sql::SQLException &e) {
             cout << "SQLException: " << e.what() << "<br>" << endl;
         }
+
+        create_new_cart(username);
         cout << "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>" << endl;
     } else if (data == "search") {
         general_search_template();
@@ -301,8 +339,7 @@ void login_template(const string &data) {
 
     cout << "<body>" << endl;
     cout << "<h1><a href='../cgi-bin/tarea1_seguridad'>Store</a></h1>" << endl;
-    cout << "<h2>User: " + user_name + "</h2>" << endl;
-    cout << "<p><a href='../cgi-bin/tarea1_seguridad?login-check-out'>Log Out</a></p>" << endl;
+    cout << "<p>User: " + user_name + "</p>" << endl;
 
     if (data == "sell") {
         // ------------------------------------------------------------------
@@ -373,6 +410,59 @@ void login_template(const string &data) {
         // ------------------------------------------------------------------
         // Individual Product Site
         // ------------------------------------------------------------------
+        string product_id = get_product_id_from_URL(data);
+
+        sql::mysql::MySQL_Driver *driver;
+        sql::Connection *con;
+        sql::Statement *stmt;
+        sql::ResultSet *res;
+
+        try {
+            driver = sql::mysql::get_mysql_driver_instance();
+            con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
+
+            string query = "SELECT * FROM products WHERE id = '" + product_id + "';";
+
+            stmt = con->createStatement();
+            stmt->execute("USE seguridad1");
+            res = stmt->executeQuery(query);
+
+            if (res->next()) {
+                cout << "<h2>Product: " << res->getString("name") << "</h2>" << endl;
+                cout << "<h3>Price: $" << res->getString("price") << "</h3>" << endl;
+                cout << "<p>" << res->getString("description") << "</p>" << endl;
+                cout << "<p>In stock: " << res->getString("quantity") << "</p>" << endl;
+
+                cout << "<form action=tarea1_seguridad?product-conn=" + product_id + " method='post'>" << endl;
+                cout << "Quantity <input type='number' name='quantity' size=10 min=1 max=" +
+                        res->getString("quantity") + "><br>" << endl;
+                cout << "<input type='submit' value='Add to cart'>" << endl;
+                cout << "</form>" << endl;
+            } else {
+                cout << "<h2>Product doesn't exist</h2>" << endl;
+            }
+
+            delete res;
+            delete stmt;
+            delete con;
+        } catch (sql::SQLException &e) {}
+        cout << "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>" << endl;
+    } else if (product_template_conn) {
+        // ------------------------------------------------------------------
+        // Buy Individual Product Site
+        // ------------------------------------------------------------------
+        string product_id = get_product_id_from_URL(data);
+
+        string line;
+        getline(cin, line);
+        vector<string> lines_buffer = get_tokens(line);
+
+        /*
+         * INPUTS:
+         * lines_buffer[0]: quantity
+         * */
+        string quantity = lines_buffer[0];
+
 
     } else {
         // ------------------------------------------------------------------
@@ -382,6 +472,7 @@ void login_template(const string &data) {
         cout << "<h2><a href='../cgi-bin/tarea1_seguridad?search'>Search products</a></h2>" << endl;
         cout << "<h2><a href='../cgi-bin/tarea1_seguridad?cart'>Shopping cart</a></h2>" << endl;
     }
+    cout << "<p><a href='../cgi-bin/tarea1_seguridad?login-check-out'>Log Out</a></p>" << endl;
 
     cout << "</body>" << endl;
     cout << "</html>" << endl;
@@ -396,6 +487,7 @@ int main() {
 
     user_login = false;
     product_template = check_product_URL(data);
+    product_template_conn = check_product_conn_URL(data);
 
     // Database Connection Info
     sql_db_url = "localhost";
