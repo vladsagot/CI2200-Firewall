@@ -13,6 +13,7 @@ string sql_db_url, sql_db_username, sql_db_password;
 // Login Info
 bool user_login;
 string user_id;
+string user_name;
 
 string format_email(const string &line) {
     return regex_replace(line, regex("%40"), "@");
@@ -122,6 +123,9 @@ void general_search_conn_template() {
 }
 
 void contact_template() {
+    // ------------------------------------------------------------------
+    // Contact Form
+    // ------------------------------------------------------------------
     cout << "<h2>Contact</h2>" << endl;
     cout << "<form action=tarea1_seguridad?contact-conn method='post'>" << endl;
     cout << "Name <input type='text' name='name' size=10><br>" << endl;
@@ -133,8 +137,46 @@ void contact_template() {
 }
 
 void contact_conn_template() {
+    // ------------------------------------------------------------------
+    // Contact Database Connection
+    // ------------------------------------------------------------------
     cout << "<h2>Contact</h2>" << endl;
-    
+
+    string line;
+    getline(cin, line);
+    vector<string> lines_buffer = get_tokens(line);
+
+    /*
+     * INPUTS:
+     * lines_buffer[0]: name
+     * lines_buffer[1]: email
+     * lines_buffer[2]: message
+     * */
+    string name = lines_buffer[0];
+    string email = lines_buffer[1];
+    string message = lines_buffer[2];
+
+    sql::mysql::MySQL_Driver *driver;
+    sql::Connection *con;
+    sql::Statement *stmt;
+
+    try {
+        driver = sql::mysql::get_mysql_driver_instance();
+        con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
+
+        stmt = con->createStatement();
+        stmt->execute("USE seguridad1");
+        stmt->execute("INSERT INTO mailbox(name, email, message) VALUES ('" +
+                      name + "','" + email + "','" + message + "')");
+
+        delete stmt;
+        delete con;
+
+        cout << "Thanks for your message!<br>" << endl;
+    } catch (sql::SQLException &e) {
+        cout << "SQLException: " << e.what() << "<br>" << endl;
+    }
+    cout << "<a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a>" << endl;
 }
 
 void no_login_template(const string &data) {
@@ -221,7 +263,7 @@ void no_login_template(const string &data) {
         general_search_conn_template();
     } else if (data == "contact") {
         contact_template();
-    } else if (data == "contact_conn") {
+    } else if (data == "contact-conn") {
         contact_conn_template();
     } else {
         // ------------------------------------------------------------------
@@ -229,7 +271,7 @@ void no_login_template(const string &data) {
         // ------------------------------------------------------------------
         cout << "<h2><a href='../cgi-bin/tarea1_seguridad?login'>Login</a></h2>" << endl;
         cout << "<h2><a href='../cgi-bin/tarea1_seguridad?sign-up'>Sign up</a></h2>" << endl;
-        cout << "<h2><a href='../cgi-bin/tarea1_seguridad?search'>Search</a></h2>" << endl;
+        cout << "<h2><a href='../cgi-bin/tarea1_seguridad?search'>Search products</a></h2>" << endl;
         cout << "<h2><a href='../cgi-bin/tarea1_seguridad?contact'>Contact</a></h2>" << endl;
     }
     cout << "</body>" << endl;
@@ -249,7 +291,83 @@ void login_template(const string &data) {
 
     cout << "<body>" << endl;
     cout << "<h1><a href='../cgi-bin/tarea1_seguridad'>Store</a></h1>" << endl;
-    cout << "<h2><a href='../cgi-bin/tarea1_seguridad?login-check-out'>Log Out</a></h2>" << endl;
+    cout << "<h2>User: " + user_name + "</h2>" << endl;
+    cout << "<a href='../cgi-bin/tarea1_seguridad?login-check-out'>Log Out</a><br>" << endl;
+
+    if (data == "sell") {
+        // ------------------------------------------------------------------
+        // Sell Form
+        // ------------------------------------------------------------------
+        cout << "<h2>Sell product</h2>" << endl;
+        cout << "<form action=tarea1_seguridad?sell-conn method='post'>" << endl;
+        cout << "Product name <input type='text' name='name' size=10><br>" << endl;
+        cout << "Description <input type='text' name='description' size=40><br>" << endl;
+        cout << "Quantity <input type='number' name='quantity' size=10><br>" << endl;
+        cout << "Price $<input type='number' name='price' size=10><br>" << endl;
+        cout << "<input type='submit' value='Send'>" << endl;
+        cout << "</form>" << endl;
+        cout << "<a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a>" << endl;
+    } else if (data == "sell-conn") {
+        // ------------------------------------------------------------------
+        // Sell Database Connection
+        // ------------------------------------------------------------------
+        cout << "<h2>Sell product</h2>" << endl;
+
+        string line;
+        getline(cin, line);
+        vector<string> lines_buffer = get_tokens(line);
+
+        /*
+         * INPUTS:
+         * lines_buffer[0]: name
+         * lines_buffer[1]: description
+         * lines_buffer[2]: quantity
+         * lines_buffer[3]: price
+         * */
+        string name = lines_buffer[0];
+        string description = lines_buffer[1];
+        string quantity = lines_buffer[2];
+        string price = lines_buffer[3];
+
+        sql::mysql::MySQL_Driver *driver;
+        sql::Connection *con;
+        sql::Statement *stmt;
+
+        try {
+            driver = sql::mysql::get_mysql_driver_instance();
+            con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
+
+            stmt = con->createStatement();
+            stmt->execute("USE seguridad1");
+            stmt->execute("INSERT INTO products(name, description, quantity, price, id_user) VALUES ('" +
+                          name + "','" + description + "'," + quantity + "," + price + "," + user_id + ")");
+
+            delete stmt;
+            delete con;
+
+            cout << "Your product is ready to sell!<br><br>" << endl;
+        } catch (sql::SQLException &e) {
+            cout << "SQLException: " << e.what() << "<br>" << endl;
+        }
+        cout << "<a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a>" << endl;
+    } else if (data == "search") {
+        general_search_template();
+    } else if (data == "search-conn") {
+        general_search_conn_template();
+    } else if (data == "cart") {
+        // ------------------------------------------------------------------
+        // Cart Site
+        // ------------------------------------------------------------------
+        cout << "<a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a>" << endl;
+    } else {
+        // ------------------------------------------------------------------
+        // Main Site
+        // ------------------------------------------------------------------
+        cout << "<h2><a href='../cgi-bin/tarea1_seguridad?sell'>Sell product</a></h2>" << endl;
+        cout << "<h2><a href='../cgi-bin/tarea1_seguridad?search'>Search products</a></h2>" << endl;
+        cout << "<h2><a href='../cgi-bin/tarea1_seguridad?cart'>Shopping cart</a></h2>" << endl;
+    }
+
     cout << "</body>" << endl;
     cout << "</html>" << endl;
 }
@@ -303,24 +421,19 @@ int main() {
             res = stmt->executeQuery(query);
 
             if (res->next()) {
-                cout << "Set-Cookie:UserID=" + res->getString("ID") + ";" << endl;
-            } else {
-                cout << "Set-Cookie:UserID=;" << endl;
-                //cout << "Incorrect user or password<br>" << endl;
+                cout << "Set-Cookie:UserID=" + res->getString("id") + ";" << endl;
+                cout << "Set-Cookie:UserName=" + res->getString("username") + ";" << endl;
             }
-
-            //cout << "<a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a>" << endl;
 
             delete res;
             delete stmt;
             delete con;
-        } catch (sql::SQLException &e) {
-            //cout << "SQLException: " << e.what() << "<br>" << endl;
-        }
+        } catch (sql::SQLException &e) {}
     }
 
     if (data == "login-check-out") {
         cout << "Set-Cookie:UserID=;" << endl;
+        cout << "Set-Cookie:UserName=;" << endl;
     }
 
     // Verify is exist a logged user
@@ -329,13 +442,12 @@ int main() {
     /*
      * INPUTS:
      * cookie_tokens[0]: UserID
-     * cookie_tokens[1]: Password
-     * cookie_tokens[2]: Domain
-     * cookie_tokens[3]: Path
+     * cookie_tokens[1]: UserName
      */
     if (!cookie_tokens.empty() && !cookie_tokens[0].empty()) {
         user_login = true;
         user_id = cookie_tokens[0];
+        user_name = cookie_tokens[1];
     }
 
     cout << "content-type: text/html" << endl << endl;

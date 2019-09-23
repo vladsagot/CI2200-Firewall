@@ -5,7 +5,7 @@ USE seguridad1;
 DROP TABLE IF EXISTS order_products;
 DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS orders;
-DROP TABLE IF EXISTS suggestions_mailbox;
+DROP TABLE IF EXISTS mailbox;
 DROP TABLE IF EXISTS users;
 
 CREATE TABLE IF NOT EXISTS users
@@ -36,12 +36,13 @@ CREATE TABLE IF NOT EXISTS products
     CONSTRAINT names_unique UNIQUE (name)
 );
 
-CREATE TABLE IF NOT EXISTS suggestions_mailbox
+CREATE TABLE IF NOT EXISTS mailbox
 (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    name       VARCHAR(30) NOT NULL,
-    message    VARCHAR(1000)
+    name       VARCHAR(30)   NOT NULL,
+    email      VARCHAR(30)   NOT NULL,
+    message    VARCHAR(1000) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS orders
