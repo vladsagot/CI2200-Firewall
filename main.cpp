@@ -212,7 +212,13 @@ void create_new_cart(const string &username) {
         stmt->execute("USE seguridad1");
         res = stmt->executeQuery(query);
 
-        if (res->next()) {
+        /*
+         * If a cart exists, then set the status to 'inactive' value and creates a new one,
+         * when this happens is because an user bought the items in a cart
+         */
+        while (res->next()) {
+            stmt->execute("UPDATE carts SET status = 'inactive' WHERE id_user = " + res->getString("id") +
+                          " AND status = 'active'");
             stmt->execute("INSERT INTO carts(id_user,status) VALUES (" + res->getString("id") + ",'active')");
         }
 
@@ -358,8 +364,14 @@ void buy_template() {
                           res->getString("id") + ";");
         }
 
+        // -------------------------
+        // CREATE A NEW CART FROM USER, AFTER TRANSACTION
+        // -------------------------
+
         delete stmt;
         delete con;
+
+        create_new_cart(user_name);
 
         cout << "<p>Thanks! Hope to enjoy our products!</p>" << endl;
     } catch (sql::SQLException &e) {
@@ -621,7 +633,7 @@ void login_template(const string &data) {
             stmt = con->createStatement();
             stmt->execute("USE seguridad1");
             stmt->execute("INSERT INTO carts_products(id_cart, id_product, quantity) VALUES (" + active_cart_id + "," +
-                                  product_id + "," + quantity + ")");
+                          product_id + "," + quantity + ")");
 
             delete stmt;
             delete con;

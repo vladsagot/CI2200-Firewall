@@ -6,6 +6,7 @@ DROP TABLE IF EXISTS carts_products;
 DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS carts;
 DROP TABLE IF EXISTS mailbox;
+DROP TABLE IF EXISTS cards_info;
 DROP TABLE IF EXISTS users;
 
 CREATE TABLE IF NOT EXISTS users
@@ -45,17 +46,12 @@ CREATE TABLE IF NOT EXISTS carts
         ON DELETE CASCADE
 );
 
-SELECT id
-FROM carts
-WHERE status = 'active'
-  AND id_user = '1';
-
 CREATE TABLE IF NOT EXISTS products
 (
     id          INT AUTO_INCREMENT PRIMARY KEY,
     name        VARCHAR(60)   NOT NULL,
     description VARCHAR(1000),
-    quantity    INT           NOT NULL,
+    quantity    INT UNSIGNED  NOT NULL,
     price       DECIMAL(6, 2) NOT NULL,
     id_user     INT           NOT NULL,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -110,11 +106,3 @@ VALUES ('Pineapple', 'A deliciuos fruit.', 10, 1, 1);
 
 INSERT INTO products(name, description, quantity, price, id_user)
 VALUES ('Apple', 'A deliciuos fruit.', 10, 1.5, 1);
-
-SELECT products.id, products.price, carts_products.quantity, products.price * carts_products.quantity AS total
-FROM carts_products,
-     products,
-     carts
-WHERE carts.id = 1
-  AND carts_products.id_cart = carts.id
-  AND carts_products.id_product = products.id;
