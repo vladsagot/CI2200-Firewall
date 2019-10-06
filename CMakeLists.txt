@@ -3,5 +3,5 @@ project(tarea1_seguridad)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(tarea1_seguridad main.cpp)
+add_executable(tarea1_seguridad main.cpp Store.cpp Store.h)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/include/mysql-cppconn-8 -L/usr/lib -lmysqlcppconn")
