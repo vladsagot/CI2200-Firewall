@@ -15,8 +15,9 @@ CREATE TABLE IF NOT EXISTS users
     name       VARCHAR(30) NOT NULL,
     username   VARCHAR(30) NOT NULL,
     email      VARCHAR(50) NOT NULL,
+    password   VARCHAR(255) DEFAULT NULL,
     rol        VARCHAR(30) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT usernames_unique UNIQUE (username),
     CONSTRAINT emails_unique UNIQUE (email)
 );
@@ -86,8 +87,8 @@ CREATE TABLE IF NOT EXISTS mailbox
     message    VARCHAR(1000) NOT NULL
 );
 
-INSERT INTO users(name, username, email, rol)
-VALUES ('Vladimir', 'vladsagot', 'vladsagot@gmail.com', 'admin');
+INSERT INTO users(name, username, email, password, rol)
+VALUES ('Vladimir', 'vladsagot', 'vladsagot@gmail.com', MD5('123'), 'admin');
 
 INSERT INTO carts(id_user, status)
 VALUES (1, 'active');

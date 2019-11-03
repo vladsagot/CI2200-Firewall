@@ -455,6 +455,7 @@ Store::no_login_template(const string &data) {
              endl;
         cout << "Username <input type='text' name='username' size=10><br>" <<
              endl;
+        cout << "Password <input type='password' name='password' size=10><br>" << endl;
         cout << "<input type='submit' value='Login'>" << endl;
         cout << "</form><br>" << endl;
         cout <<
@@ -498,7 +499,7 @@ Store::no_login_template(const string &data) {
         string name = lines_buffer[0];
         string username = lines_buffer[1];
         string email = lines_buffer[2];
-        string password = lines_buffer[2];
+        string password = lines_buffer[3];
         string rol = "buyer";
 
         for (const auto &i : lines_buffer) {
@@ -516,8 +517,8 @@ Store::no_login_template(const string &data) {
             stmt = con->createStatement();
             stmt->execute("USE seguridad1");
             stmt->
-                    execute("INSERT INTO users(name, username, email, rol) VALUES ('" +
-                            name + "','" + username + "','" + email + "','" + rol +
+                    execute("INSERT INTO users(name, username, email, password, rol) VALUES ('" +
+                            name + "','" + username + "','" + email + "', MD5('" + password + "'),'" + rol +
                             "')");
 
             delete stmt;
@@ -819,8 +820,10 @@ Store::run() {
         /*
          * INPUTS:
          * lines_buffer[0] : username
+         * lines_buffer[1] : password
          */
         string username = lines_buffer[0];
+        string password = lines_buffer[1];
 
         /*
          * Login database connection
@@ -836,7 +839,7 @@ Store::run() {
 
             string query =
                     "SELECT id, username FROM users WHERE username = '" + username +
-                    "';";
+                    "' AND password = MD5('" + password + "');";
 
             stmt = con->createStatement();
             stmt->execute("USE seguridad1");
