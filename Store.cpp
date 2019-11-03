@@ -438,8 +438,6 @@ Store::no_login_template(const string &data) {
     cout
             << "<link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css' integrity='sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T' crossorigin='anonymous'>"
             << endl;
-    //cout << "<link href='https://fonts.googleapis.com/css?family=VT323&display=swap' rel='stylesheet'>" << endl;
-    //cout << "<style type='text/css'>* { font-family: 'VT323', monospace; }</style>" << endl;
     cout << "</head>" << endl;
 
     cout << "<body><div class='container'><div class='row'><div class='col'>" << endl;
@@ -582,8 +580,6 @@ Store::login_template(const string &data) {
     cout
             << "<link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css' integrity='sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T' crossorigin='anonymous'>"
             << endl;
-    //cout << "<link href='https://fonts.googleapis.com/css?family=VT323&display=swap' rel='stylesheet'>" << endl;
-    //cout << "<style type='text/css'>* { font-family: 'VT323', monospace; }</style>" << endl;
     cout << "</head>" << endl;
 
     cout << "<body><div class='container'><div class='row'><div class='col'>" << endl;
