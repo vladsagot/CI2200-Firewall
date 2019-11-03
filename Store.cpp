@@ -81,12 +81,12 @@ Store::general_search_template() {
     // ------------------------------------------------------------------
     cout << "<h2>Search</h2>" << endl;
     cout << "<p>Leave empty to see all products.</p>" << endl;
-    cout << "<form action=tarea1_seguridad?search-conn method='post'>" << endl;
+    cout << "<form action=store.cgi?search-conn method='post'>" << endl;
     cout << "<input type='text' name='name' size=10><br>" << endl;
     cout << "<input type='submit' value='Search'>" << endl;
     cout << "</form>" << endl;
     cout <<
-         "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>" <<
+         "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>" <<
          endl;
 }
 
@@ -105,13 +105,13 @@ Store::general_search_conn_template() {
      * */
     string product_name = lines_buffer[0];
 
-    sql::mysql::MySQL_Driver *driver;
+    sql::Driver *driver;
     sql::Connection *con;
     sql::Statement *stmt;
     sql::ResultSet *res;
 
     try {
-        driver = sql::mysql::get_mysql_driver_instance();
+        driver = get_driver_instance();
         con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
         string query =
@@ -122,15 +122,16 @@ Store::general_search_conn_template() {
         stmt->execute("USE seguridad1");
         res = stmt->executeQuery(query);
 
-        cout << "<table><tr> <th>Name</th> <th>Quantity</th> <th>Price</th> </tr>"
-             << endl;
+        cout
+                << "<table class='table'><tr> <th scope='col'>Name</th> <th scope='col'>Quantity</th> <th scope='col'>Price</th> </tr>"
+                << endl;
         while (res->next()) {
             cout << "<tr>" << endl;
-            cout << "<th><a href='../cgi-bin/tarea1_seguridad?product=" +
+            cout << "<th scope='col'><a href='../cgi-bin/store.cgi?product=" +
                     res->getString("id") +
                     "'>" << res->getString("name") << "</a></th>" << endl;
-            cout << "<th>" << res->getString("Quantity") << "</th>" << endl;
-            cout << "<th>" << "$" << res->getString("Price") << "</th>" << endl;
+            cout << "<th scope='col'>" << res->getString("Quantity") << "</th>" << endl;
+            cout << "<th scope='col'>" << "$" << res->getString("Price") << "</th>" << endl;
             cout << "</tr>" << endl;
         }
         cout << "</table><br>" << endl;
@@ -140,10 +141,14 @@ Store::general_search_conn_template() {
         delete con;
     }
     catch (sql::SQLException &e) {
-        cout << "SQLException: " << e.what() << "<br>" << endl;
+        cout << "# ERR: SQLException in " << __FILE__;
+        cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl;
+        cout << "# ERR: " << e.what();
+        cout << " (MySQL error code: " << e.getErrorCode();
+        cout << ", SQLState: " << e.getSQLState() << " )" << endl;
     }
     cout <<
-         "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>" <<
+         "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>" <<
          endl;
 }
 
@@ -153,14 +158,14 @@ Store::contact_template() {
     // Contact Form
     // ------------------------------------------------------------------
     cout << "<h2>Contact</h2>" << endl;
-    cout << "<form action=tarea1_seguridad?contact-conn method='post'>" << endl;
+    cout << "<form action=store.cgi?contact-conn method='post'>" << endl;
     cout << "Name <input type='text' name='name' size=10><br>" << endl;
     cout << "Email <input type='text' name='email' size=10><br>" << endl;
     cout << "Message <input type='text' name='message' size=40><br>" << endl;
     cout << "<input type='submit' value='Send'>" << endl;
     cout << "</form>" << endl;
     cout <<
-         "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>" <<
+         "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>" <<
          endl;
 }
 
@@ -185,12 +190,12 @@ Store::contact_conn_template() {
     string email = lines_buffer[1];
     string message = lines_buffer[2];
 
-    sql::mysql::MySQL_Driver *driver;
+    sql::Driver *driver;
     sql::Connection *con;
     sql::Statement *stmt;
 
     try {
-        driver = sql::mysql::get_mysql_driver_instance();
+        driver = get_driver_instance();
         con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
         stmt = con->createStatement();
@@ -206,19 +211,19 @@ Store::contact_conn_template() {
         cout << "SQLException: " << e.what() << "<br>" << endl;
     }
     cout <<
-         "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>" <<
+         "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>" <<
          endl;
 }
 
 void
 Store::create_new_cart(const string &username) {
-    sql::mysql::MySQL_Driver *driver;
+    sql::Driver *driver;
     sql::Connection *con;
     sql::Statement *stmt;
     sql::ResultSet *res;
 
     try {
-        driver = sql::mysql::get_mysql_driver_instance();
+        driver = get_driver_instance();
         con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
         string query =
@@ -250,7 +255,7 @@ Store::create_new_cart(const string &username) {
 
 string
 Store::get_user_active_cart_id() {
-    sql::mysql::MySQL_Driver *driver;
+    sql::Driver *driver;
     sql::Connection *con;
     sql::Statement *stmt;
     sql::ResultSet *res;
@@ -258,7 +263,7 @@ Store::get_user_active_cart_id() {
     string result;
 
     try {
-        driver = sql::mysql::get_mysql_driver_instance();
+        driver = get_driver_instance();
         con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
         string query =
@@ -286,7 +291,7 @@ void
 Store::cart_template() {
     cout << "<h2>Cart</h2>" << endl;
 
-    sql::mysql::MySQL_Driver *driver;
+    sql::Driver *driver;
     sql::Connection *con;
     sql::Statement *stmt;
     sql::ResultSet *res;
@@ -295,7 +300,7 @@ Store::cart_template() {
     double total = 0;
 
     try {
-        driver = sql::mysql::get_mysql_driver_instance();
+        driver = get_driver_instance();
         con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
         string query =
@@ -308,20 +313,21 @@ Store::cart_template() {
         res = stmt->executeQuery(query);
 
         cout <<
-             "<table><tr> <th>Name</th> <th>Price</th> <th>Quantity</th> <th>Subtotal</th> </tr>"
+             "<table class='table'><tr> <th scope='col'>Name</th> <th scope='col'>Price</th> <th scope='col'>Quantity</th> <th scope='col'>Subtotal</th> </tr>"
              << endl;
         while (res->next()) {
             cout << "<tr>" << endl;
-            cout << "<th>" << res->getString("name") << "</th>" << endl;
-            cout << "<th> $" << res->getString("price") << "</th>" << endl;
-            cout << "<th>" << res->getString("quantity") << "</th>" << endl;
-            cout << "<th> $" << res->getString("total") << "</th>" << endl;
+            cout << "<th scope='col'>" << res->getString("name") << "</th>" << endl;
+            cout << "<th scope='col'> $" << res->getString("price") << "</th>" << endl;
+            cout << "<th scope='col'>" << res->getString("quantity") << "</th>" << endl;
+            cout << "<th scope='col'> $" << res->getString("total") << "</th>" << endl;
             cout << "</tr>" << endl;
 
             total += stod(res->getString("total"));
         }
-        cout << "<tr style='height: 50px;'><th>Total</th><th></th><th></th><th>$"
-             << total << "</th></tr>" << endl;
+        cout
+                << "<tr style='height: 50px;'><th scope='col'>Total</th><th scope='col'></th><th scope='col'></th><th scope='col'>$"
+                << total << "</th></tr>" << endl;
         cout << "</table>" << endl;
         delete res;
         delete stmt;
@@ -331,7 +337,7 @@ Store::cart_template() {
         cout << "SQLException: " << e.what() << "<br>" << endl;
     }
 
-    cout << "<form action=tarea1_seguridad?buy method='post'>" << endl;
+    cout << "<form action=store.cgi?buy method='post'>" << endl;
     cout << "Card number <input type='text' name='card' size=20><br>" << endl;
     cout << "Expires <input type='text' name='expires' size=10><br>" << endl;
     cout << "Security code <input type='text' name='code' size=10><br>" << endl;
@@ -339,7 +345,7 @@ Store::cart_template() {
     cout << "</form>" << endl;
 
     cout <<
-         "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>" <<
+         "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>" <<
          endl;
 }
 
@@ -361,7 +367,7 @@ Store::buy_template() {
     string expires = lines_buffer[1];
     string code = lines_buffer[2];
 
-    sql::mysql::MySQL_Driver *driver;
+    sql::Driver *driver;
     sql::Connection *con;
     sql::Statement *stmt;
     sql::ResultSet *res;
@@ -369,7 +375,7 @@ Store::buy_template() {
     string active_cart = get_user_active_cart_id();
 
     try {
-        driver = sql::mysql::get_mysql_driver_instance();
+        driver = get_driver_instance();
         con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
         // -------------------------
@@ -415,7 +421,7 @@ Store::buy_template() {
         cout << "SQLException: " << e.what() << "<br>" << endl;
     }
     cout <<
-         "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>" <<
+         "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>" <<
          endl;
 }
 
@@ -426,43 +432,51 @@ Store::no_login_template(const string &data) {
 
     cout << "<head>" << endl;
     cout << "<meta charset='utf-8'>" << endl;
+    cout << "<meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>" << endl;
     cout << "<title>Store</title>" << endl;
     cout << "<meta name='description' content='Store'>" << endl;
     cout << "<meta name='author' content='Vladimir Sagot'>" << endl;
+    cout
+            << "<link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css' integrity='sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T' crossorigin='anonymous'>"
+            << endl;
+    //cout << "<link href='https://fonts.googleapis.com/css?family=VT323&display=swap' rel='stylesheet'>" << endl;
+    //cout << "<style type='text/css'>* { font-family: 'VT323', monospace; }</style>" << endl;
     cout << "</head>" << endl;
 
-    cout << "<body>" << endl;
-    cout << "<h1><a href='../cgi-bin/tarea1_seguridad'>Store</a></h1>" << endl;
+    cout << "<body><div class='container'><div class='row'><div class='col'>" << endl;
+    cout << "<h1><a href='../cgi-bin/store.cgi'>Store</a></h1>" << endl;
 
     if (data == "login") {
         // ------------------------------------------------------------------
         // Login Form
         // ------------------------------------------------------------------
         cout << "<h2>Login</h2>" << endl;
-        cout << "<form action=tarea1_seguridad?login-check-in method='post'>" <<
+        cout << "<form action=store.cgi?login-check-in method='post'>" <<
              endl;
         cout << "Username <input type='text' name='username' size=10><br>" <<
              endl;
         cout << "<input type='submit' value='Login'>" << endl;
         cout << "</form><br>" << endl;
         cout <<
-             "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>"
+             "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>"
              << endl;
     } else if (data == "sign-up") {
         // ------------------------------------------------------------------
         // Sign Up Form
         // ------------------------------------------------------------------
         cout << "<h2>Sign up</h2>" << endl;
-        cout << "<form action=tarea1_seguridad?sign-up-conn method='post'>" <<
+        cout << "<form action=store.cgi?sign-up-conn method='post'>" <<
              endl;
         cout << "Name <input type='text' name='name' size=10><br>" << endl;
         cout << "Username <input type='text' name='username' size=10><br>" <<
              endl;
         cout << "Email <input type='text' name='email' size=20><br>" << endl;
+        cout << "Password <input type='password' name='password' size=10><br>" << endl;
+        cout << "<p>Password size up to 10 characters.</p>" << endl;
         cout << "<input type='submit' value='Submit'>" << endl;
         cout << "</form><br>" << endl;
         cout <<
-             "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>"
+             "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>"
              << endl;
     } else if (data == "sign-up-conn") {
         // ------------------------------------------------------------------
@@ -479,18 +493,24 @@ Store::no_login_template(const string &data) {
          * lines_buffer[0] : name
          * lines_buffer[1] : username
          * lines_buffer[2] : email
+         * lines_buffer[3] : password
          */
         string name = lines_buffer[0];
         string username = lines_buffer[1];
         string email = lines_buffer[2];
+        string password = lines_buffer[2];
         string rol = "buyer";
 
-        sql::mysql::MySQL_Driver *driver;
+        for (const auto &i : lines_buffer) {
+            cout << i << endl;
+        }
+
+        sql::Driver *driver;
         sql::Connection *con;
         sql::Statement *stmt;
 
         try {
-            driver = sql::mysql::get_mysql_driver_instance();
+            driver = get_driver_instance();
             con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
             stmt = con->createStatement();
@@ -511,7 +531,7 @@ Store::no_login_template(const string &data) {
 
         create_new_cart(username);
         cout <<
-             "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>"
+             "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>"
              << endl;
     } else if (data == "search") {
         general_search_template();
@@ -527,19 +547,21 @@ Store::no_login_template(const string &data) {
         // ------------------------------------------------------------------
         // Main Site
         // ------------------------------------------------------------------
-        cout << "<h2><a href='../cgi-bin/tarea1_seguridad?login'>Login</a></h2>"
+        cout << "<h2><a href='../cgi-bin/store.cgi?login'>Login</a></h2>"
              << endl;
         cout <<
-             "<h2><a href='../cgi-bin/tarea1_seguridad?sign-up'>Sign up</a></h2>"
+             "<h2><a href='../cgi-bin/store.cgi?sign-up'>Sign up</a></h2>"
              << endl;
         cout <<
-             "<h2><a href='../cgi-bin/tarea1_seguridad?search'>Search products</a></h2>"
+             "<h2><a href='../cgi-bin/store.cgi?search'>Search products</a></h2>"
              << endl;
         cout <<
-             "<h2><a href='../cgi-bin/tarea1_seguridad?contact'>Contact</a></h2>"
+             "<h2><a href='../cgi-bin/store.cgi?contact'>Contact</a></h2>"
              << endl;
     }
-    cout << "</body>" << endl;
+    cout
+            << "</div></div></div><script src='https://code.jquery.com/jquery-3.3.1.slim.min.js' integrity='sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo' crossorigin='anonymous'></script><script src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js' integrity='sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1' crossorigin='anonymous'></script><script src='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js' integrity='sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM' crossorigin='anonymous'></script></body>"
+            << endl;
     cout << "</html>" << endl;
 }
 
@@ -550,13 +572,19 @@ Store::login_template(const string &data) {
 
     cout << "<head>" << endl;
     cout << "<meta charset='utf-8'>" << endl;
+    cout << "<meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>" << endl;
     cout << "<title>Store</title>" << endl;
     cout << "<meta name='description' content='Store'>" << endl;
     cout << "<meta name='author' content='Vladimir Sagot'>" << endl;
+    cout
+            << "<link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css' integrity='sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T' crossorigin='anonymous'>"
+            << endl;
+    //cout << "<link href='https://fonts.googleapis.com/css?family=VT323&display=swap' rel='stylesheet'>" << endl;
+    //cout << "<style type='text/css'>* { font-family: 'VT323', monospace; }</style>" << endl;
     cout << "</head>" << endl;
 
-    cout << "<body>" << endl;
-    cout << "<h1><a href='../cgi-bin/tarea1_seguridad'>Store</a></h1>" << endl;
+    cout << "<body><div class='container'><div class='row'><div class='col'>" << endl;
+    cout << "<h1><a href='../cgi-bin/store.cgi'>Store</a></h1>" << endl;
     cout << "<p>User: " + user_name + "</p>" << endl;
 
     if (data == "sell") {
@@ -564,7 +592,7 @@ Store::login_template(const string &data) {
         // Sell Form
         // ------------------------------------------------------------------
         cout << "<h2>Sell product</h2>" << endl;
-        cout << "<form action=tarea1_seguridad?sell-conn method='post'>" <<
+        cout << "<form action=store.cgi?sell-conn method='post'>" <<
              endl;
         cout << "Product name <input type='text' name='name' size=10><br>" <<
              endl;
@@ -576,7 +604,7 @@ Store::login_template(const string &data) {
         cout << "<input type='submit' value='Send'>" << endl;
         cout << "</form>" << endl;
         cout <<
-             "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>"
+             "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>"
              << endl;
     } else if (data == "sell-conn") {
         // ------------------------------------------------------------------
@@ -600,12 +628,12 @@ Store::login_template(const string &data) {
         string quantity = lines_buffer[2];
         string price = lines_buffer[3];
 
-        sql::mysql::MySQL_Driver *driver;
+        sql::Driver *driver;
         sql::Connection *con;
         sql::Statement *stmt;
 
         try {
-            driver = sql::mysql::get_mysql_driver_instance();
+            driver = get_driver_instance();
             con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
             stmt = con->createStatement();
@@ -625,7 +653,7 @@ Store::login_template(const string &data) {
             cout << "SQLException: " << e.what() << "<br>" << endl;
         }
         cout <<
-             "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>"
+             "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>"
              << endl;
     } else if (data == "search") {
         general_search_template();
@@ -641,13 +669,13 @@ Store::login_template(const string &data) {
         // ------------------------------------------------------------------
         string product_id = get_product_id_from_URL(data);
 
-        sql::mysql::MySQL_Driver *driver;
+        sql::Driver *driver;
         sql::Connection *con;
         sql::Statement *stmt;
         sql::ResultSet *res;
 
         try {
-            driver = sql::mysql::get_mysql_driver_instance();
+            driver = get_driver_instance();
             con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
             string query =
@@ -666,7 +694,7 @@ Store::login_template(const string &data) {
                 cout << "<p>In stock: " << res->
                         getString("quantity") << "</p>" << endl;
 
-                cout << "<form action=tarea1_seguridad?product-conn=" +
+                cout << "<form action=store.cgi?product-conn=" +
                         product_id + " method='post'>" << endl;
                 cout <<
                      "Quantity <input type='number' name='quantity' size=10 min=1 max="
@@ -684,7 +712,7 @@ Store::login_template(const string &data) {
         catch (sql::SQLException &e) {
         }
         cout <<
-             "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>"
+             "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>"
              << endl;
     } else if (product_template_conn) {
         // ------------------------------------------------------------------
@@ -703,12 +731,12 @@ Store::login_template(const string &data) {
          * */
         string quantity = lines_buffer[0];
 
-        sql::mysql::MySQL_Driver *driver;
+        sql::Driver *driver;
         sql::Connection *con;
         sql::Statement *stmt;
 
         try {
-            driver = sql::mysql::get_mysql_driver_instance();
+            driver = get_driver_instance();
             con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
             // INSERT INTO carts_products(id_cart, id_product, quantity) VALUES ();
@@ -729,27 +757,29 @@ Store::login_template(const string &data) {
         }
 
         cout <<
-             "<p><a href='../cgi-bin/tarea1_seguridad'>Go to the main page</a></p>"
+             "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>"
              << endl;
     } else {
         // ------------------------------------------------------------------
         // Main Site
         // ------------------------------------------------------------------
         cout <<
-             "<h2><a href='../cgi-bin/tarea1_seguridad?sell'>Sell product</a></h2>"
+             "<h2><a href='../cgi-bin/store.cgi?sell'>Sell product</a></h2>"
              << endl;
         cout <<
-             "<h2><a href='../cgi-bin/tarea1_seguridad?search'>Search products</a></h2>"
+             "<h2><a href='../cgi-bin/store.cgi?search'>Search products</a></h2>"
              << endl;
         cout <<
-             "<h2><a href='../cgi-bin/tarea1_seguridad?cart'>Shopping cart</a></h2>"
+             "<h2><a href='../cgi-bin/store.cgi?cart'>Shopping cart</a></h2>"
              << endl;
     }
     cout <<
-         "<p><a href='../cgi-bin/tarea1_seguridad?login-check-out'>Log Out</a></p>"
+         "<p><a href='../cgi-bin/store.cgi?login-check-out'>Log Out</a></p>"
          << endl;
 
-    cout << "</body>" << endl;
+    cout
+            << "</div></div></div><script src='https://code.jquery.com/jquery-3.3.1.slim.min.js' integrity='sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo' crossorigin='anonymous'></script><script src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js' integrity='sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1' crossorigin='anonymous'></script><script src='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js' integrity='sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM' crossorigin='anonymous'></script></body>"
+            << endl;
     cout << "</html>" << endl;
 }
 
@@ -770,9 +800,9 @@ Store::run() {
     product_template_conn = check_product_conn_URL(data);
 
     // Database connection info
-    sql_db_url = "localhost";
-    sql_db_username = "vlad";
-    sql_db_password = "";
+    sql_db_url = "127.0.0.1:3306";
+    sql_db_username = "root";
+    sql_db_password = "mango";
     /*
      * End to set initial variables
      */
@@ -795,13 +825,13 @@ Store::run() {
         /*
          * Login database connection
          */
-        sql::mysql::MySQL_Driver *driver;
+        sql::Driver *driver;
         sql::Connection *con;
         sql::Statement *stmt;
         sql::ResultSet *res;
 
         try {
-            driver = sql::mysql::get_mysql_driver_instance();
+            driver = get_driver_instance();
             con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
             string query =
@@ -861,18 +891,18 @@ Store::run() {
     // Refresh page if an user is log in or log out
     if (data == "login-check-in" || data == "login-check-out")
         cout <<
-             "<meta http-equiv='refresh' content='0; url=../cgi-bin/tarea1_seguridad'>"
+             "<meta http-equiv='refresh' content='0; url=../cgi-bin/store.cgi'>"
              << endl;
 
-    cout << "DATA: " << data << "<br>" << endl;
-    cout << "COOKIE: " << cookie << "<br>" << endl;
-    cout << "PRODUCT TEMPLATE: " << product_template << "<br>" << endl;
+    //cout << "DATA: " << data << "<br>" << endl;
+    //cout << "COOKIE: " << cookie << "<br>" << endl;
+    //cout << "PRODUCT TEMPLATE: " << product_template << "<br>" << endl;
 
     /*
      * Checks if user is login to display another template
      */
     if (user_login) {
-        cout << "USER ID: " << user_id << "<br>" << endl;
+        //cout << "USER ID: " << user_id << "<br>" << endl;
         login_template(data);
     } else {
         no_login_template(data);
