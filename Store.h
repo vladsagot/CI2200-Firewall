@@ -30,16 +30,13 @@ private:
     string sql_db_url, sql_db_username, sql_db_password;
 
     // Determines if user is login
-    bool user_login;
-    bool user_login_fail;
+    bool user_login, user_login_fail;
 
     // Stores logged user information
-    string user_id;
-    string user_name;
+    string user_id, user_name;
 
     // Boolean values for dynamic product templates
-    bool product_template;
-    bool product_template_conn;
+    bool product_template, product_template_conn;
 
     /*
      * Methods
@@ -82,6 +79,8 @@ private:
     void no_login_template(const string &data);
 
 public:
+    Store();
+
     void run();
 };
 

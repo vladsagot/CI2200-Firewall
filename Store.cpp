@@ -107,12 +107,12 @@ Store::general_search_conn_template() {
      * */
     string product_name = lines_buffer[0].substr(0, 30);
 
-    sql::Driver *driver;
-    sql::Connection *con;
-    sql::Statement *stmt;
-    sql::ResultSet *res;
-
     try {
+        sql::Driver *driver;
+        sql::Connection *con;
+        sql::Statement *stmt;
+        sql::ResultSet *res;
+
         driver = get_driver_instance();
         con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
@@ -189,11 +189,11 @@ Store::contact_conn_template() {
     string email = lines_buffer[1].substr(0, 30);
     string message = lines_buffer[2].substr(0, 500);
 
-    sql::Driver *driver;
-    sql::Connection *con;
-    sql::Statement *stmt;
-
     try {
+        sql::Driver *driver;
+        sql::Connection *con;
+        sql::Statement *stmt;
+
         driver = get_driver_instance();
         con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
@@ -216,12 +216,13 @@ Store::contact_conn_template() {
 
 void
 Store::create_new_cart(const string &username) {
-    sql::Driver *driver;
-    sql::Connection *con;
-    sql::Statement *stmt;
-    sql::ResultSet *res;
 
     try {
+        sql::Driver *driver;
+        sql::Connection *con;
+        sql::Statement *stmt;
+        sql::ResultSet *res;
+
         driver = get_driver_instance();
         con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
@@ -254,14 +255,15 @@ Store::create_new_cart(const string &username) {
 
 string
 Store::get_user_active_cart_id() {
-    sql::Driver *driver;
-    sql::Connection *con;
-    sql::Statement *stmt;
-    sql::ResultSet *res;
 
     string result;
 
     try {
+        sql::Driver *driver;
+        sql::Connection *con;
+        sql::Statement *stmt;
+        sql::ResultSet *res;
+
         driver = get_driver_instance();
         con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
@@ -290,15 +292,16 @@ void
 Store::cart_template() {
     cout << "<h2>Cart</h2>" << endl;
 
-    sql::Driver *driver;
-    sql::Connection *con;
-    sql::Statement *stmt;
-    sql::ResultSet *res;
-
     string active_cart = get_user_active_cart_id();
-    double total = 0;
 
     try {
+        sql::Driver *driver;
+        sql::Connection *con;
+        sql::Statement *stmt;
+        sql::ResultSet *res;
+
+        double total = 0;
+
         driver = get_driver_instance();
         con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
@@ -366,14 +369,14 @@ Store::buy_template() {
     string expires = lines_buffer[1].substr(0, 10);
     string code = lines_buffer[2].substr(0, 5);
 
-    sql::Driver *driver;
-    sql::Connection *con;
-    sql::Statement *stmt;
-    sql::ResultSet *res;
-
     string active_cart = get_user_active_cart_id();
 
     try {
+        sql::Driver *driver;
+        sql::Connection *con;
+        sql::Statement *stmt;
+        sql::ResultSet *res;
+
         driver = get_driver_instance();
         con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
@@ -506,11 +509,11 @@ Store::no_login_template(const string &data) {
             cout << i << endl;
         }
 
-        sql::Driver *driver;
-        sql::Connection *con;
-        sql::Statement *stmt;
-
         try {
+            sql::Driver *driver;
+            sql::Connection *con;
+            sql::Statement *stmt;
+
             driver = get_driver_instance();
             con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
@@ -631,11 +634,11 @@ Store::login_template(const string &data) {
         string quantity = to_string(buff_quantity);
         string price = to_string(buff_price);
 
-        sql::Driver *driver;
-        sql::Connection *con;
-        sql::Statement *stmt;
-
         try {
+            sql::Driver *driver;
+            sql::Connection *con;
+            sql::Statement *stmt;
+
             driver = get_driver_instance();
             con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
@@ -672,12 +675,12 @@ Store::login_template(const string &data) {
         // ------------------------------------------------------------------
         string product_id = get_product_id_from_URL(data);
 
-        sql::Driver *driver;
-        sql::Connection *con;
-        sql::Statement *stmt;
-        sql::ResultSet *res;
-
         try {
+            sql::Driver *driver;
+            sql::Connection *con;
+            sql::Statement *stmt;
+            sql::ResultSet *res;
+
             driver = get_driver_instance();
             con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
@@ -734,11 +737,11 @@ Store::login_template(const string &data) {
          * */
         string quantity = lines_buffer[0];
 
-        sql::Driver *driver;
-        sql::Connection *con;
-        sql::Statement *stmt;
-
         try {
+            sql::Driver *driver;
+            sql::Connection *con;
+            sql::Statement *stmt;
+
             driver = get_driver_instance();
             con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
@@ -796,18 +799,10 @@ Store::run() {
     string data = getenv("QUERY_STRING") ? getenv("QUERY_STRING") : "";
     string cookie = getenv("HTTP_COOKIE") ? getenv("HTTP_COOKIE") : "";
 
-    // Set initial configuration for login
-    user_login = false;
-    user_login_fail = false;
-
     // Set values for dinamic products templates
     product_template = check_product_URL(data);
     product_template_conn = check_product_conn_URL(data);
 
-    // Database connection info
-    sql_db_url = "127.0.0.1:3306";
-    sql_db_username = "root";
-    sql_db_password = "mango";
     /*
      * End to set initial variables
      */
@@ -832,12 +827,12 @@ Store::run() {
         /*
          * Login database connection
          */
-        sql::Driver *driver;
-        sql::Connection *con;
-        sql::Statement *stmt;
-        sql::ResultSet *res;
-
         try {
+            sql::Driver *driver;
+            sql::Connection *con;
+            sql::Statement *stmt;
+            sql::ResultSet *res;
+
             driver = get_driver_instance();
             con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
@@ -920,4 +915,24 @@ Store::run() {
     /*
      * HTML ends here
      */
+}
+
+Store::Store() : sql_db_url("127.0.0.1:3306"), sql_db_username("root"), sql_db_password("mango"), user_id(""),
+                 user_name("") {
+    // Database connection info
+    // sql_db_url = "127.0.0.1:3306";
+    // sql_db_username = "root";
+    // sql_db_password = "mango";
+
+    // Set initial configuration for login
+    user_login = false;
+    user_login_fail = false;
+
+    // Stores logged user information
+    // user_id = "";
+    // user_name = "";
+
+    // Boolean values for dynamic product templates
+    product_template = false;
+    product_template_conn = false;
 }
