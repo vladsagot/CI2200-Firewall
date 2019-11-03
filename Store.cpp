@@ -206,7 +206,7 @@ Store::contact_conn_template() {
         delete stmt;
         delete con;
 
-        cout << "Thanks for your message!<br>" << endl;
+        cout << "<div class='alert alert-primary' role='alert'>Thanks for your message!</div>" << endl;
     } catch (sql::SQLException &e) {
         cout << "SQLException: " << e.what() << "<br>" << endl;
     }
@@ -446,6 +446,9 @@ Store::no_login_template(const string &data) {
     cout << "<body><div class='container'><div class='row'><div class='col'>" << endl;
     cout << "<h1><a href='../cgi-bin/store.cgi'>Store</a></h1>" << endl;
 
+    if (user_login_fail)
+        cout << "<div class='alert alert-danger' role='alert'>Invalid user or password. Try again.</div>" << endl;
+
     if (data == "login") {
         // ------------------------------------------------------------------
         // Login Form
@@ -453,9 +456,9 @@ Store::no_login_template(const string &data) {
         cout << "<h2>Login</h2>" << endl;
         cout << "<form action=store.cgi?login-check-in method='post'>" <<
              endl;
-        cout << "Username <input type='text' name='username' size=10><br>" <<
+        cout << "Username <input type='text' name='username' size=15 maxlength=10><br>" <<
              endl;
-        cout << "Password <input type='password' name='password' size=10><br>" << endl;
+        cout << "Password <input type='password' name='password' size=15 maxlength=10><br>" << endl;
         cout << "<input type='submit' value='Login'>" << endl;
         cout << "</form><br>" << endl;
         cout <<
@@ -586,7 +589,7 @@ Store::login_template(const string &data) {
 
     cout << "<body><div class='container'><div class='row'><div class='col'>" << endl;
     cout << "<h1><a href='../cgi-bin/store.cgi'>Store</a></h1>" << endl;
-    cout << "<p>User: " + user_name + "</p>" << endl;
+    cout << "<div class='alert alert-primary' role='alert'>User: " + user_name + "</div>" << endl;
 
     if (data == "sell") {
         // ------------------------------------------------------------------
@@ -775,7 +778,7 @@ Store::login_template(const string &data) {
              << endl;
     }
     cout <<
-         "<p><a href='../cgi-bin/store.cgi?login-check-out'>Log Out</a></p>"
+         "<p><a class='btn btn-primary' href='../cgi-bin/store.cgi?login-check-out' role='button'>Log Out</a></p>"
          << endl;
 
     cout
@@ -795,6 +798,7 @@ Store::run() {
 
     // Set initial configuration for login
     user_login = false;
+    user_login_fail = false;
 
     // Set values for dinamic products templates
     product_template = check_product_URL(data);
@@ -822,8 +826,8 @@ Store::run() {
          * lines_buffer[0] : username
          * lines_buffer[1] : password
          */
-        string username = lines_buffer[0];
-        string password = lines_buffer[1];
+        string username = lines_buffer[0].substr(0, 10);
+        string password = lines_buffer[1].substr(0, 10);
 
         /*
          * Login database connection
@@ -850,6 +854,8 @@ Store::run() {
                         ";" << endl;
                 cout << "Set-Cookie:UserName=" + res->getString("username") +
                         ";" << endl;
+            } else {
+                user_login_fail = true;
             }
 
             delete res;
@@ -894,7 +900,7 @@ Store::run() {
     // Refresh page if an user is log in or log out
     if (data == "login-check-in" || data == "login-check-out")
         cout <<
-             "<meta http-equiv='refresh' content='0; url=../cgi-bin/store.cgi'>"
+             "<meta http-equiv='refresh' content='3; url=../cgi-bin/store.cgi'>"
              << endl;
 
     //cout << "DATA: " << data << "<br>" << endl;

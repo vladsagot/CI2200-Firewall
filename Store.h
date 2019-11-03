@@ -31,6 +31,7 @@ private:
 
     // Determines if user is login
     bool user_login;
+    bool user_login_fail;
 
     // Stores logged user information
     string user_id;
