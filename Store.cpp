@@ -505,9 +505,11 @@ Store::no_login_template(const string &data) {
         string password = lines_buffer[3].substr(0, 10);
         string rol = "buyer";
 
+        /*
         for (const auto &i : lines_buffer) {
             cout << i << endl;
         }
+         */
 
         try {
             sql::Driver *driver;
@@ -527,7 +529,7 @@ Store::no_login_template(const string &data) {
             delete stmt;
             delete con;
 
-            cout << "<p>Successful registration</p>" << endl;
+            cout << "<div class='alert alert-primary' role='alert'>Successful registration</div>" << endl;
         }
         catch (sql::SQLException &e) {
             cout << "SQLException: " << e.what() << "<br>" << endl;
