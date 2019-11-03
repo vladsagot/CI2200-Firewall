@@ -88,7 +88,7 @@ Store::general_search_template() {
     cout << "<input type='submit' value='Search'>" << endl;
     cout << "</form>" << endl;
     cout <<
-         "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>" <<
+         "<a class='btn btn-secondary btn-sm my-5' href='../cgi-bin/store.cgi' role='button'>Go to the main page</a>" <<
          endl;
 }
 
@@ -143,11 +143,12 @@ Store::general_search_conn_template() {
         delete con;
     }
     catch (sql::SQLException &e) {
-        cout << " (MySQL error code: " << e.getErrorCode();
-        cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+        //cout << " (MySQL error code: " << e.getErrorCode();
+        //cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+        cout << "<div class='alert alert-danger' role='alert'>Error</div>" << endl;
     }
     cout <<
-         "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>" <<
+         "<a class='btn btn-secondary btn-sm my-5' href='../cgi-bin/store.cgi' role='button'>Go to the main page</a>" <<
          endl;
 }
 
@@ -164,7 +165,7 @@ Store::contact_template() {
     cout << "<input type='submit' value='Send'>" << endl;
     cout << "</form>" << endl;
     cout <<
-         "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>" <<
+         "<a class='btn btn-secondary btn-sm my-5' href='../cgi-bin/store.cgi' role='button'>Go to the main page</a>" <<
          endl;
 }
 
@@ -207,10 +208,11 @@ Store::contact_conn_template() {
 
         cout << "<div class='alert alert-primary' role='alert'>Thanks for your message!</div>" << endl;
     } catch (sql::SQLException &e) {
-        cout << "SQLException: " << e.what() << "<br>" << endl;
+        // cout << "SQLException: " << e.what() << "<br>" << endl;
+        cout << "<div class='alert alert-danger' role='alert'>Error</div>" << endl;
     }
     cout <<
-         "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>" <<
+         "<a class='btn btn-secondary btn-sm my-5' href='../cgi-bin/store.cgi' role='button'>Go to the main page</a>" <<
          endl;
 }
 
@@ -250,6 +252,7 @@ Store::create_new_cart(const string &username) {
         delete con;
     }
     catch (sql::SQLException &e) {
+        cout << "<div class='alert alert-danger' role='alert'>Error</div>" << endl;
     }
 }
 
@@ -283,6 +286,7 @@ Store::get_user_active_cart_id() {
         delete con;
     }
     catch (sql::SQLException &e) {
+        cout << "<div class='alert alert-danger' role='alert'>Error</div>" << endl;
     }
 
     return result;
@@ -336,7 +340,8 @@ Store::cart_template() {
         delete con;
     }
     catch (sql::SQLException &e) {
-        cout << "SQLException: " << e.what() << "<br>" << endl;
+        // cout << "SQLException: " << e.what() << "<br>" << endl;
+        cout << "<div class='alert alert-danger' role='alert'>Error</div>" << endl;
     }
 
     cout << "<form action=store.cgi?buy method='post'>" << endl;
@@ -347,7 +352,7 @@ Store::cart_template() {
     cout << "</form>" << endl;
 
     cout <<
-         "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>" <<
+         "<a class='btn btn-secondary btn-sm my-5' href='../cgi-bin/store.cgi' role='button'>Go to the main page</a>" <<
          endl;
 }
 
@@ -420,31 +425,16 @@ Store::buy_template() {
         cout << "<div class='alert alert-primary' role='alert'>Thanks! Hope to enjoy our products!</div>" << endl;
     }
     catch (sql::SQLException &e) {
-        cout << "SQLException: " << e.what() << "<br>" << endl;
+        // cout << "SQLException: " << e.what() << "<br>" << endl;
+        cout << "<div class='alert alert-danger' role='alert'>Error</div>" << endl;
     }
     cout <<
-         "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>" <<
+         "<a class='btn btn-secondary btn-sm my-5' href='../cgi-bin/store.cgi' role='button'>Go to the main page</a>" <<
          endl;
 }
 
 void
 Store::no_login_template(const string &data) {
-    cout << "<!doctype html>" << endl;
-    cout << "<html lang='en'>" << endl;
-
-    cout << "<head>" << endl;
-    cout << "<meta charset='utf-8'>" << endl;
-    cout << "<meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>" << endl;
-    cout << "<title>Store</title>" << endl;
-    cout << "<meta name='description' content='Store'>" << endl;
-    cout << "<meta name='author' content='Vladimir Sagot'>" << endl;
-    cout
-            << "<link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css' integrity='sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T' crossorigin='anonymous'>"
-            << endl;
-    cout << "</head>" << endl;
-
-    cout << "<body><div class='container'><div class='row'><div class='col'>" << endl;
-    cout << "<h1><a href='../cgi-bin/store.cgi'>Store</a></h1>" << endl;
 
     if (user_login_fail)
         cout << "<div class='alert alert-danger' role='alert'>Invalid user or password. Try again.</div>" << endl;
@@ -462,7 +452,7 @@ Store::no_login_template(const string &data) {
         cout << "<input type='submit' value='Login'>" << endl;
         cout << "</form><br>" << endl;
         cout <<
-             "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>"
+             "<a class='btn btn-secondary btn-sm my-5' href='../cgi-bin/store.cgi' role='button'>Go to the main page</a>"
              << endl;
     } else if (data == "sign-up") {
         // ------------------------------------------------------------------
@@ -480,7 +470,7 @@ Store::no_login_template(const string &data) {
         cout << "<input type='submit' value='Submit'>" << endl;
         cout << "</form><br>" << endl;
         cout <<
-             "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>"
+             "<a class='btn btn-secondary btn-sm my-5' href='../cgi-bin/store.cgi' role='button'>Go to the main page</a>"
              << endl;
     } else if (data == "sign-up-conn") {
         // ------------------------------------------------------------------
@@ -532,12 +522,13 @@ Store::no_login_template(const string &data) {
             cout << "<div class='alert alert-primary' role='alert'>Successful registration</div>" << endl;
         }
         catch (sql::SQLException &e) {
-            cout << "SQLException: " << e.what() << "<br>" << endl;
+            // cout << "SQLException: " << e.what() << "<br>" << endl;
+            cout << "<div class='alert alert-danger' role='alert'>Error</div>" << endl;
         }
 
         create_new_cart(username);
         cout <<
-             "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>"
+             "<a class='btn btn-secondary btn-sm my-5' href='../cgi-bin/store.cgi' role='button'>Go to the main page</a>"
              << endl;
     } else if (data == "search") {
         general_search_template();
@@ -565,30 +556,11 @@ Store::no_login_template(const string &data) {
              "<h2><a href='../cgi-bin/store.cgi?contact'>Contact</a></h2>"
              << endl;
     }
-    cout
-            << "</div></div></div></body>"
-            << endl;
-    cout << "</html>" << endl;
+    print_footer();
 }
 
 void
 Store::login_template(const string &data) {
-    cout << "<!doctype html>" << endl;
-    cout << "<html lang='en'>" << endl;
-
-    cout << "<head>" << endl;
-    cout << "<meta charset='utf-8'>" << endl;
-    cout << "<meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>" << endl;
-    cout << "<title>Store</title>" << endl;
-    cout << "<meta name='description' content='Store'>" << endl;
-    cout << "<meta name='author' content='Vladimir Sagot'>" << endl;
-    cout
-            << "<link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css' integrity='sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T' crossorigin='anonymous'>"
-            << endl;
-    cout << "</head>" << endl;
-
-    cout << "<body><div class='container'><div class='row'><div class='col'>" << endl;
-    cout << "<h1><a href='../cgi-bin/store.cgi'>Store</a></h1>" << endl;
     cout << "<div class='alert alert-primary' role='alert'>User: " + user_name + "</div>" << endl;
 
     if (data == "sell") {
@@ -604,11 +576,11 @@ Store::login_template(const string &data) {
              << endl;
         cout << "Quantity <input type='number' name='quantity' size=10 maxlength=3><br>" <<
              endl; // max 999 items
-        cout << "Price $<input type='number' name='price' size=10><br> maxlength=3" << endl;  // max $999
+        cout << "Price $<input type='number' name='price' size=10 maxlength=3><br>" << endl;  // max $999
         cout << "<input type='submit' value='Send'>" << endl;
         cout << "</form>" << endl;
         cout <<
-             "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>"
+             "<a class='btn btn-secondary btn-sm my-5' href='../cgi-bin/store.cgi' role='button'>Go to the main page</a>"
              << endl;
     } else if (data == "sell-conn") {
         // ------------------------------------------------------------------
@@ -658,10 +630,11 @@ Store::login_template(const string &data) {
             cout << "<div class='alert alert-primary' role='alert'>Your product is ready to sell!</div>" << endl;
         }
         catch (sql::SQLException &e) {
-            cout << "SQLException: " << e.what() << "<br>" << endl;
+            // cout << "SQLException: " << e.what() << "<br>" << endl;
+            cout << "<div class='alert alert-danger' role='alert'>Error</div>" << endl;
         }
         cout <<
-             "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>"
+             "<a class='btn btn-secondary btn-sm my-5' href='../cgi-bin/store.cgi' role='button'>Go to the main page</a>"
              << endl;
     } else if (data == "search") {
         general_search_template();
@@ -718,9 +691,10 @@ Store::login_template(const string &data) {
             delete con;
         }
         catch (sql::SQLException &e) {
+            cout << "<div class='alert alert-danger' role='alert'>Error</div>" << endl;
         }
         cout <<
-             "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>"
+             "<a class='btn btn-secondary btn-sm my-5' href='../cgi-bin/store.cgi' role='button'>Go to the main page</a>"
              << endl;
     } else if (product_template_conn) {
         // ------------------------------------------------------------------
@@ -762,11 +736,12 @@ Store::login_template(const string &data) {
             cout << "<p>Product added to cart</p>" << endl;
         }
         catch (sql::SQLException &e) {
-            cout << "SQLException: " << e.what() << "<br>" << endl;
+            // cout << "SQLException: " << e.what() << "<br>" << endl;
+            cout << "<div class='alert alert-danger' role='alert'>Error</div>" << endl;
         }
 
         cout <<
-             "<p><a href='../cgi-bin/store.cgi'>Go to the main page</a></p>"
+             "<a class='btn btn-secondary btn-sm my-5' href='../cgi-bin/store.cgi' role='button'>Go to the main page</a>"
              << endl;
     } else {
         // ------------------------------------------------------------------
@@ -786,10 +761,7 @@ Store::login_template(const string &data) {
          "<p><a class='btn btn-primary' href='../cgi-bin/store.cgi?login-check-out' role='button'>Log Out</a></p>"
          << endl;
 
-    cout
-            << "</div></div></div></body>"
-            << endl;
-    cout << "</html>" << endl;
+    print_footer();
 }
 
 void
@@ -860,6 +832,7 @@ Store::run() {
             delete con;
         }
         catch (sql::SQLException &e) {
+            cout << "<div class='alert alert-danger' role='alert'>Error</div>" << endl;
         }
     }
 
@@ -900,15 +873,13 @@ Store::run() {
              "<meta http-equiv='refresh' content='3; url=../cgi-bin/store.cgi'>"
              << endl;
 
-    //cout << "DATA: " << data << "<br>" << endl;
-    //cout << "COOKIE: " << cookie << "<br>" << endl;
-    //cout << "PRODUCT TEMPLATE: " << product_template << "<br>" << endl;
+    print_header();
 
     /*
      * Checks if user is login to display another template
      */
     if (user_login) {
-        //cout << "USER ID: " << user_id << "<br>" << endl;
+        // cout << "USER ID: " << user_id << "<br>" << endl;
         login_template(data);
     } else {
         no_login_template(data);
@@ -937,4 +908,43 @@ Store::Store() : sql_db_url("127.0.0.1:3306"), sql_db_username("root"), sql_db_p
     // Boolean values for dynamic product templates
     product_template = false;
     product_template_conn = false;
+}
+
+void Store::print_header() {
+    //cout << "DATA: " << data << "<br>" << endl;
+    //cout << "COOKIE: " << cookie << "<br>" << endl;
+    //cout << "PRODUCT TEMPLATE: " << product_template << "<br>" << endl;
+
+    cout << "<!doctype html>" << endl;
+    cout << "<html lang='en'>" << endl;
+    cout << "<head>" << endl;
+    cout << "<meta charset='utf-8'>" << endl;
+    cout << "<meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>" << endl;
+    cout << "<title>Store</title>" << endl;
+    cout << "<meta name='description' content='Store'>" << endl;
+    cout << "<meta name='author' content='Vladimir Sagot'>" << endl;
+    cout << "<link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css'"
+         << " integrity='sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T' crossorigin='anonymous'>"
+         << endl;
+    cout
+            << "<style type='text/css'> body, .sticky-footer-wrapper { min-height:100vh; } .flex-fill { flex:1 1 auto; } </style>"
+            << endl;
+    cout << "</head>" << endl;
+    cout << "<body class='d-flex flex-column sticky-footer-wrapper'>" << endl;
+    cout << "<header><nav class='navbar navbar-dark bg-primary mb-4'>"
+         << "<a class='navbar-brand' href='../cgi-bin/store.cgi'>Store</a></nav></header>" << endl;
+    cout << "<main role='main' class='flex-fill'>" << endl;
+    cout << "<div class='container'><div class='row'><div class='col'>" << endl;
+}
+
+void Store::print_footer() {
+    cout << "</div></div></div></main>" << endl;
+    cout
+            << "<footer class='footer mt-auto py-3 bg-dark text-white-50'><div class='container text-center'><small>Vladimir Sagot Muñoz | vladimir.sagot@ucr.ac.cr</small></div></footer>"
+            << endl;
+    // cout << "<script src='https://code.jquery.com/jquery-3.3.1.slim.min.js' integrity='sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo' crossorigin='anonymous'></script>" << endl;
+    // cout << "<script src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js' integrity='sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1' crossorigin='anonymous'></script>" << endl;
+    // cout << "<script src='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js' integrity='sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM' crossorigin='anonymous'></script>" << endl;
+    cout << "</body>" << endl;
+    cout << "</html>" << endl;
 }

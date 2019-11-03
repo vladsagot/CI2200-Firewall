@@ -62,6 +62,10 @@ private:
 
     static void general_search_template();
 
+    static void print_header();
+
+    static void print_footer();
+
     string get_user_active_cart_id();
 
     void buy_template();
