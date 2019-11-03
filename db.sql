@@ -12,12 +12,12 @@ DROP TABLE IF EXISTS users;
 CREATE TABLE IF NOT EXISTS users
 (
     id         INT AUTO_INCREMENT PRIMARY KEY,
-    name       VARCHAR(30) NOT NULL,
-    username   VARCHAR(10) NOT NULL,
-    email      VARCHAR(50) NOT NULL,
-    password   VARCHAR(255) DEFAULT NULL,
-    rol        VARCHAR(30) NOT NULL,
-    created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+    name       VARCHAR(30)  NOT NULL,
+    username   VARCHAR(10)  NOT NULL,
+    email      VARCHAR(50)  NOT NULL,
+    password   VARCHAR(255) NOT NULL,
+    rol        VARCHAR(30)  NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT usernames_unique UNIQUE (username),
     CONSTRAINT emails_unique UNIQUE (email)
 );
