@@ -50,17 +50,21 @@ CREATE TABLE IF NOT EXISTS carts
 CREATE TABLE IF NOT EXISTS products
 (
     id          INT AUTO_INCREMENT PRIMARY KEY,
-    name        VARCHAR(60)   NOT NULL,
-    description VARCHAR(1000),
-    quantity    INT UNSIGNED  NOT NULL,
-    price       DECIMAL(6, 2) NOT NULL,
-    id_user     INT           NOT NULL,
+    name        VARCHAR(60)  NOT NULL,
+    description VARCHAR(500),
+    quantity    INT UNSIGNED NOT NULL, #max 999 items
+    price       INT UNSIGNED NOT NULL, #max $999
+    id_user     INT          NOT NULL,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_user)
         REFERENCES users (id)
         ON UPDATE RESTRICT
         ON DELETE CASCADE
 );
+
+UPDATE products
+SET quantity = quantity - 1
+WHERE id = 3;
 
 CREATE TABLE IF NOT EXISTS carts_products
 (
@@ -82,9 +86,9 @@ CREATE TABLE IF NOT EXISTS mailbox
 (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    name       VARCHAR(30)   NOT NULL,
-    email      VARCHAR(30)   NOT NULL,
-    message    VARCHAR(1000) NOT NULL
+    name       VARCHAR(30)  NOT NULL,
+    email      VARCHAR(30)  NOT NULL,
+    message    VARCHAR(500) NOT NULL
 );
 
 INSERT INTO users(name, username, email, password, rol)
