@@ -236,6 +236,8 @@ Store::contact_conn_template() {
     string email = lines_buffer[1].substr(0, 30);
     string message = lines_buffer[2].substr(0, 500);
 
+    if (string_only_letters_and_numbers(name)) name = "";
+    if (string_only_letters_and_numbers(message)) message = "";
 
     try {
         sql::Driver *driver;
@@ -421,63 +423,71 @@ Store::buy_template() {
      * lines_buffer[1]: expires
      * lines_buffer[2]: code
      * */
-    string card = lines_buffer[0].substr(0, 30);
-    string expires = lines_buffer[1].substr(0, 10);
-    string code = lines_buffer[2].substr(0, 5);
+    string card = lines_buffer[0].substr(0, 16);
+    string expires = lines_buffer[1].substr(0, 5);
+    string code = lines_buffer[2].substr(0, 3);
+
+    bool invalid = false;
+
+    if (!string_only_letters_and_numbers(card) || !string_only_letters_and_numbers(card) ||
+        !string_only_letters_and_numbers(card))
+        invalid = true;
 
     string active_cart = get_user_active_cart_id();
 
-    try {
-        sql::Driver *driver;
-        sql::Connection *con;
-        sql::Statement *stmt;
-        sql::ResultSet *res;
+    if (!invalid) {
+        try {
+            sql::Driver *driver;
+            sql::Connection *con;
+            sql::Statement *stmt;
+            sql::ResultSet *res;
 
-        driver = get_driver_instance();
-        con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
+            driver = get_driver_instance();
+            con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
-        // -------------------------
-        // CARD REGISTRATION
-        // -------------------------
-        stmt = con->createStatement();
-        stmt->execute("USE seguridad1");
-        stmt->
-                execute
-                ("INSERT INTO cards_info(card_number, expire, security_code, id_user) VALUES ('"
-                 + card + "','" + expires + "', MD5('" + code + "')," + user_id + ");");
+            // -------------------------
+            // CARD REGISTRATION
+            // -------------------------
+            stmt = con->createStatement();
+            stmt->execute("USE seguridad1");
+            stmt->
+                    execute
+                    ("INSERT INTO cards_info(card_number, expire, security_code, id_user) VALUES ('"
+                     + card + "','" + expires + "', MD5('" + code + "')," + user_id + ");");
 
-        // -------------------------
-        // TRANSACTION
-        // -------------------------
-        string query =
-                "SELECT products.id, products.price, carts_products.quantity, products.price * carts_products.quantity AS total FROM carts_products, products, carts WHERE carts.id = "
-                + active_cart +
-                " AND carts_products.id_cart = carts.id AND carts_products.id_product = products.id;";
+            // -------------------------
+            // TRANSACTION
+            // -------------------------
+            string query =
+                    "SELECT products.id, products.price, carts_products.quantity, products.price * carts_products.quantity AS total FROM carts_products, products, carts WHERE carts.id = "
+                    + active_cart +
+                    " AND carts_products.id_cart = carts.id AND carts_products.id_product = products.id;";
 
-        stmt = con->createStatement();
-        stmt->execute("USE seguridad1");
-        res = stmt->executeQuery(query);
+            stmt = con->createStatement();
+            stmt->execute("USE seguridad1");
+            res = stmt->executeQuery(query);
 
-        while (res->next()) {
-            stmt->execute("UPDATE products SET quantity = quantity - " +
-                          res->getString("quantity") + " WHERE id = " +
-                          res->getString("id") + ";");
+            while (res->next()) {
+                stmt->execute("UPDATE products SET quantity = quantity - " +
+                              res->getString("quantity") + " WHERE id = " +
+                              res->getString("id") + ";");
+            }
+
+            // -------------------------
+            // CREATE A NEW CART FROM USER, AFTER TRANSACTION
+            // -------------------------
+
+            delete stmt;
+            delete con;
+
+            create_new_cart(user_name);
+
+            cout << "<div class='alert alert-primary' role='alert'>Thanks! Hope to enjoy our products!</div>" << endl;
         }
-
-        // -------------------------
-        // CREATE A NEW CART FROM USER, AFTER TRANSACTION
-        // -------------------------
-
-        delete stmt;
-        delete con;
-
-        create_new_cart(user_name);
-
-        cout << "<div class='alert alert-primary' role='alert'>Thanks! Hope to enjoy our products!</div>" << endl;
-    }
-    catch (sql::SQLException &e) {
-        // cout << "SQLException: " << e.what() << "<br>" << endl;
-        cout << "<div class='alert alert-danger' role='alert'>Error</div>" << endl;
+        catch (sql::SQLException &e) {
+            // cout << "SQLException: " << e.what() << "<br>" << endl;
+            cout << "<div class='alert alert-danger' role='alert'>Error</div>" << endl;
+        }
     }
     cout <<
          "<a class='btn btn-secondary btn-sm my-5' href='../cgi-bin/store.cgi' role='button'>Go to the main page</a>" <<
@@ -547,13 +557,19 @@ Store::no_login_template(const string &data) {
         string password = lines_buffer[3].substr(0, 10);
         string rol = "buyer";
 
+        bool invalid = false;
+
+        if (!string_only_letters_and_numbers(name) || !string_only_letters_and_numbers(username) ||
+            !string_only_letters_and_numbers(password))
+            invalid = true;
+
         /*
         for (const auto &i : lines_buffer) {
             cout << i << endl;
         }
          */
 
-        if (name.size() > 4 && username.size() > 4 && email.size() > 4 && password.size() > 4) {
+        if (name.size() > 4 && username.size() > 4 && email.size() > 4 && password.size() > 4 && !invalid) {
 
             try {
                 sql::Driver *driver;
@@ -657,8 +673,12 @@ Store::login_template(const string &data) {
          * lines_buffer[2]: quantity -- check if [1-999]
          * lines_buffer[3]: price -- check if [$1-$999]
          * */
+
         string name = lines_buffer[0].substr(0, 60);
-        string description = lines_buffer[1].substr(0, 500);
+        string description = lines_buffer[1].substr(0, 60);
+
+        if (!string_only_letters_and_numbers(name)) name = "";
+        if (!string_only_letters_and_numbers(description)) description = "";
 
         int buff_quantity = 0 < stoi(lines_buffer[2]) && stoi(lines_buffer[2]) < 1000 ? stoi(lines_buffer[2]) : 1;
         int buff_price = 0 < stoi(lines_buffer[3]) && stoi(lines_buffer[3]) < 1000 ? stoi(lines_buffer[3]) : 1;
