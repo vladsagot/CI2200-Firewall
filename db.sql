@@ -94,6 +94,9 @@ CREATE TABLE IF NOT EXISTS mailbox
 INSERT INTO users(name, username, email, password, rol)
 VALUES ('Vladimir', 'vladsagot', 'vladsagot@gmail.com', MD5('123'), 'admin');
 
+INSERT INTO users(name, username, email, password, rol)
+VALUES ('Vladimir', '', 'vladsagot@gmail.com', MD5('123'), 'admin');
+
 INSERT INTO carts(id_user, status)
 VALUES (1, 'active');
 
@@ -111,3 +114,7 @@ VALUES ('Pineapple', 'A deliciuos fruit.', 10, 1, 1);
 
 INSERT INTO products(name, description, quantity, price, id_user)
 VALUES ('Apple', 'A deliciuos fruit.', 10, 1.5, 1);
+
+INSERT INTO products(name, description, quantity, price, id_user)
+VALUES ('Green apple', 'A deliciuos fruit.', 10, 1.5, 1);
+

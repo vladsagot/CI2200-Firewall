@@ -54,7 +54,7 @@ private:
 
     static string get_token(const string &line);
 
-    static vector<string> get_cookie_tokens(const string &line);
+    vector<string> get_cookie_tokens(const string &line);
 
     static vector<string> get_tokens(const string &line);
 
@@ -81,6 +81,10 @@ private:
     void login_template(const string &data);
 
     void no_login_template(const string &data);
+
+    static bool string_only_letters_and_numbers(string s);
+
+    static string remove_string_sum_signs(string s);
 
 public:
     Store();

@@ -49,18 +49,61 @@ Store::get_cookie_token(const string &line) {
 }
 
 vector<string> Store::get_cookie_tokens(const string &line) {
-    size_t
-            tokens_n = count(line.begin(), line.end(), ';') + 1;
+    size_t tokens_n = count(line.begin(), line.end(), ';') + 1;
     vector<string> lines_buffer;
-    string
-            buffer = line;
-    string
-            token;
+    string buffer = line;
+    string token;
+
     for (size_t i = 0; i < tokens_n; ++i) {
         token = get_cookie_token(buffer);
         lines_buffer.push_back(token);
         buffer = buffer.substr(buffer.find(';') + 1);
     }
+
+    bool verified_cookies = false;
+
+    /*
+     * Login database connection
+     */
+
+    /*
+     * INPUTS:
+     * cookie_tokens[0]: UserID
+     * cookie_tokens[1]: UserName
+     */
+    if (lines_buffer.size() >= 2) {
+        try {
+            sql::Driver *driver;
+            sql::Connection *con;
+            sql::Statement *stmt;
+            sql::ResultSet *res;
+
+            driver = get_driver_instance();
+            con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
+
+            string query =
+                    "SELECT * FROM users WHERE username = '" + lines_buffer[1] +
+                    "' AND id = " + lines_buffer[0] + ";";
+
+            stmt = con->createStatement();
+            stmt->execute("USE seguridad1");
+            res = stmt->executeQuery(query);
+
+            if (res->next()) {
+                verified_cookies = true;
+            }
+
+            delete res;
+            delete stmt;
+            delete con;
+        }
+        catch (sql::SQLException &e) {}
+    }
+
+    if (!verified_cookies) {
+        lines_buffer.clear();
+    }
+
     return lines_buffer;
 }
 
@@ -105,7 +148,10 @@ Store::general_search_conn_template() {
      * INPUTS:
      * lines_buffer[0] : product_name
      * */
-    string product_name = lines_buffer[0].substr(0, 30);
+    string product_name = remove_string_sum_signs(lines_buffer[0].substr(0, 30));
+    if (!string_only_letters_and_numbers(product_name)) product_name = "";
+
+    // cout << product_name << endl;
 
     try {
         sql::Driver *driver;
@@ -143,8 +189,8 @@ Store::general_search_conn_template() {
         delete con;
     }
     catch (sql::SQLException &e) {
-        //cout << " (MySQL error code: " << e.getErrorCode();
-        //cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+        cout << " (MySQL error code: " << e.getErrorCode();
+        cout << ", SQLState: " << e.getSQLState() << " )" << endl;
         cout << "<div class='alert alert-danger' role='alert'>Error</div>" << endl;
     }
     cout <<
@@ -189,6 +235,7 @@ Store::contact_conn_template() {
     string name = lines_buffer[0].substr(0, 30);
     string email = lines_buffer[1].substr(0, 30);
     string message = lines_buffer[2].substr(0, 500);
+
 
     try {
         sql::Driver *driver;
@@ -297,6 +344,7 @@ Store::cart_template() {
     cout << "<h2>Cart</h2>" << endl;
 
     string active_cart = get_user_active_cart_id();
+    int cart_size = 0;
 
     try {
         sql::Driver *driver;
@@ -321,7 +369,9 @@ Store::cart_template() {
         cout <<
              "<table class='table'><tr> <th scope='col'>Name</th> <th scope='col'>Price</th> <th scope='col'>Quantity</th> <th scope='col'>Subtotal</th> </tr>"
              << endl;
+
         while (res->next()) {
+            cart_size++;
             cout << "<tr>" << endl;
             cout << "<th scope='col'>" << res->getString("name") << "</th>" << endl;
             cout << "<th scope='col'> $" << res->getString("price") << "</th>" << endl;
@@ -345,10 +395,11 @@ Store::cart_template() {
     }
 
     cout << "<form action=store.cgi?buy method='post'>" << endl;
-    cout << "Card number <input type='text' name='card' size=30 maxlength=30><br>" << endl;
-    cout << "Expires <input type='text' name='expires' size=10 maxlength=10><br>" << endl;
-    cout << "Security code <input type='text' name='code' size=10 maxlength=5><br>" << endl;
-    cout << "<input type='submit' value='Buy'>" << endl;
+    cout << "Card number <input type='text' name='card' size=30 minlength=16 maxlength=16 required><br>" << endl;
+    cout << "Expires <input type='text' name='expires' size=10 minlength=5 maxlength=5 required><br>" << endl;
+    cout << "Security code <input type='text' name='code' size=10 minlength=3 maxlength=3 required><br>" << endl;
+    if (cart_size > 0) { cout << "<input type='submit' value='Buy'>" << endl; }
+    else { cout << "<input type='submit' value='Buy' disabled>" << endl; }
     cout << "</form>" << endl;
 
     cout <<
@@ -446,9 +497,9 @@ Store::no_login_template(const string &data) {
         cout << "<h2>Login</h2>" << endl;
         cout << "<form action=store.cgi?login-check-in method='post'>" <<
              endl;
-        cout << "Username <input type='text' name='username' size=15 maxlength=10><br>" <<
+        cout << "Username <input type='text' name='username' size=15 maxlength=10 required><br>" <<
              endl;
-        cout << "Password <input type='password' name='password' size=15 maxlength=10><br>" << endl;
+        cout << "Password <input type='password' name='password' size=15 maxlength=10 required><br>" << endl;
         cout << "<input type='submit' value='Login'>" << endl;
         cout << "</form><br>" << endl;
         cout <<
@@ -461,11 +512,12 @@ Store::no_login_template(const string &data) {
         cout << "<h2>Sign up</h2>" << endl;
         cout << "<form action=store.cgi?sign-up-conn method='post'>" <<
              endl;
-        cout << "Name <input type='text' name='name' size=15 maxlength=30><br>" << endl;
-        cout << "Username <input type='text' name='username' size=15 maxlength=10><br>" <<
+        cout << "Name <input type='text' name='name' size=15 minlength=5 maxlength=30 required><br>" << endl;
+        cout << "Username <input type='text' name='username' size=15 minlength=5 maxlength=10 required><br>" <<
              endl;
-        cout << "Email <input type='text' name='email' size=30 maxlength=50><br>" << endl;
-        cout << "Password <input type='password' name='password' size=15 maxlength=10><br>" << endl;
+        cout << "Email <input type='text' name='email' size=30 minlength=5 maxlength=50 required><br>" << endl;
+        cout << "Password <input type='password' name='password' size=15 minlength=5 maxlength=10 required><br>"
+             << endl;
         cout << "<p>Password size up to 10 characters.</p>" << endl;
         cout << "<input type='submit' value='Submit'>" << endl;
         cout << "</form><br>" << endl;
@@ -501,28 +553,33 @@ Store::no_login_template(const string &data) {
         }
          */
 
-        try {
-            sql::Driver *driver;
-            sql::Connection *con;
-            sql::Statement *stmt;
+        if (name.size() > 4 && username.size() > 4 && email.size() > 4 && password.size() > 4) {
 
-            driver = get_driver_instance();
-            con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
+            try {
+                sql::Driver *driver;
+                sql::Connection *con;
+                sql::Statement *stmt;
 
-            stmt = con->createStatement();
-            stmt->execute("USE seguridad1");
-            stmt->
-                    execute("INSERT INTO users(name, username, email, password, rol) VALUES ('" +
-                            name + "','" + username + "','" + email + "', MD5('" + password + "'),'" + rol +
-                            "')");
+                driver = get_driver_instance();
+                con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
-            delete stmt;
-            delete con;
+                stmt = con->createStatement();
+                stmt->execute("USE seguridad1");
+                stmt->
+                        execute("INSERT INTO users(name, username, email, password, rol) VALUES ('" +
+                                name + "','" + username + "','" + email + "', MD5('" + password + "'),'" + rol +
+                                "')");
 
-            cout << "<div class='alert alert-primary' role='alert'>Successful registration</div>" << endl;
-        }
-        catch (sql::SQLException &e) {
-            // cout << "SQLException: " << e.what() << "<br>" << endl;
+                delete stmt;
+                delete con;
+
+                cout << "<div class='alert alert-primary' role='alert'>Successful registration</div>" << endl;
+            }
+            catch (sql::SQLException &e) {
+                // cout << "SQLException: " << e.what() << "<br>" << endl;
+                cout << "<div class='alert alert-danger' role='alert'>Error</div>" << endl;
+            }
+        } else {
             cout << "<div class='alert alert-danger' role='alert'>Error</div>" << endl;
         }
 
@@ -570,13 +627,14 @@ Store::login_template(const string &data) {
         cout << "<h2>Sell product</h2>" << endl;
         cout << "<form action=store.cgi?sell-conn method='post'>" <<
              endl;
-        cout << "Product name <input type='text' name='name' size=30 maxlength=60><br>" <<
+        cout << "Product name <input type='text' name='name' size=30 minlength=5 maxlength=60 required><br>" <<
              endl;
-        cout << "Description <input type='text' name='description' size=40 maxlength=500><br>"
+        cout << "Description <input type='text' name='description' size=40 minlength=5 maxlength=500 required><br>"
              << endl;
-        cout << "Quantity <input type='number' name='quantity' size=10 maxlength=3><br>" <<
+        cout << "Quantity <input type='number' name='quantity' size=10 minlength=1 maxlength=3 required><br>" <<
              endl; // max 999 items
-        cout << "Price $<input type='number' name='price' size=10 maxlength=3><br>" << endl;  // max $999
+        cout << "Price $<input type='number' name='price' size=10 minlength=1 maxlength=3 required><br>"
+             << endl;  // max $999
         cout << "<input type='submit' value='Send'>" << endl;
         cout << "</form>" << endl;
         cout <<
@@ -608,29 +666,34 @@ Store::login_template(const string &data) {
         string quantity = to_string(buff_quantity);
         string price = to_string(buff_price);
 
-        try {
-            sql::Driver *driver;
-            sql::Connection *con;
-            sql::Statement *stmt;
+        if (name.size() > 4 && description.size() > 4) {
 
-            driver = get_driver_instance();
-            con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
+            try {
+                sql::Driver *driver;
+                sql::Connection *con;
+                sql::Statement *stmt;
 
-            stmt = con->createStatement();
-            stmt->execute("USE seguridad1");
-            stmt->
-                    execute
-                    ("INSERT INTO products(name, description, quantity, price, id_user) VALUES ('"
-                     + name + "','" + description + "'," + quantity + "," + price +
-                     "," + user_id + ")");
+                driver = get_driver_instance();
+                con = driver->connect(sql_db_url, sql_db_username, sql_db_password);
 
-            delete stmt;
-            delete con;
+                stmt = con->createStatement();
+                stmt->execute("USE seguridad1");
+                stmt->
+                        execute
+                        ("INSERT INTO products(name, description, quantity, price, id_user) VALUES ('"
+                         + name + "','" + description + "'," + quantity + "," + price +
+                         "," + user_id + ")");
 
-            cout << "<div class='alert alert-primary' role='alert'>Your product is ready to sell!</div>" << endl;
-        }
-        catch (sql::SQLException &e) {
-            // cout << "SQLException: " << e.what() << "<br>" << endl;
+                delete stmt;
+                delete con;
+
+                cout << "<div class='alert alert-primary' role='alert'>Your product is ready to sell!</div>" << endl;
+            }
+            catch (sql::SQLException &e) {
+                // cout << "SQLException: " << e.what() << "<br>" << endl;
+                cout << "<div class='alert alert-danger' role='alert'>Error</div>" << endl;
+            }
+        } else {
             cout << "<div class='alert alert-danger' role='alert'>Error</div>" << endl;
         }
         cout <<
@@ -801,6 +864,7 @@ Store::run() {
         /*
          * Login database connection
          */
+
         try {
             sql::Driver *driver;
             sql::Connection *con;
@@ -819,10 +883,12 @@ Store::run() {
             res = stmt->executeQuery(query);
 
             if (res->next()) {
+
                 cout << "Set-Cookie:UserID=" + res->getString("id") +
                         ";" << endl;
                 cout << "Set-Cookie:UserName=" + res->getString("username") +
                         ";" << endl;
+
             } else {
                 user_login_fail = true;
             }
@@ -832,7 +898,7 @@ Store::run() {
             delete con;
         }
         catch (sql::SQLException &e) {
-            cout << "<div class='alert alert-danger' role='alert'>Error</div>" << endl;
+            // cout << "<div class='alert alert-danger' role='alert'>Error</div>" << endl;
         }
     }
 
@@ -865,13 +931,14 @@ Store::run() {
      *
      *
      */
-    cout << "content-type: text/html" << endl << endl;
+    cout << "Content-type: text/html" << endl << endl;
 
     // Refresh page if an user is log in or log out
     if (data == "login-check-in" || data == "login-check-out")
         cout <<
              "<meta http-equiv='refresh' content='3; url=../cgi-bin/store.cgi'>"
              << endl;
+
 
     print_header();
 
@@ -890,7 +957,7 @@ Store::run() {
      */
 }
 
-Store::Store() : sql_db_url("127.0.0.1:3306"), sql_db_username("root"), sql_db_password("mango"), user_id(""),
+Store::Store() : sql_db_url("127.0.0.1:3306"), sql_db_username("store"), sql_db_password("$tore123#"), user_id(""),
                  user_name("") {
     // Database connection info
     // sql_db_url = "127.0.0.1:3306";
@@ -929,6 +996,9 @@ void Store::print_header() {
     cout
             << "<style type='text/css'> body, .sticky-footer-wrapper { min-height:100vh; } .flex-fill { flex:1 1 auto; } </style>"
             << endl;
+    cout
+            << "<script type='text/javascript'> if (location.protocol != 'https:') { location.href = 'https:' + window.location.href.substring(window.location.protocol.length); } </script>"
+            << endl;
     cout << "</head>" << endl;
     cout << "<body class='d-flex flex-column sticky-footer-wrapper'>" << endl;
     cout << "<header><nav class='navbar navbar-dark bg-primary mb-4'>"
@@ -947,4 +1017,14 @@ void Store::print_footer() {
     // cout << "<script src='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js' integrity='sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM' crossorigin='anonymous'></script>" << endl;
     cout << "</body>" << endl;
     cout << "</html>" << endl;
+}
+
+bool Store::string_only_letters_and_numbers(string s) {
+    return !none_of(s.begin(), s.end(), [](unsigned char c) { return isdigit(c) || isalpha(c) || isspace(c); });
+}
+
+string Store::remove_string_sum_signs(string s) {
+    string buff = std::move(s);
+    replace(buff.begin(), buff.end(), '+', ' ');
+    return buff;
 }
